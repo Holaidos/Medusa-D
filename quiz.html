@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quiz · MEDUSA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --bg: #0a0e27; --card: rgba(255,255,255,0.03); --card-border: rgba(255,255,255,0.08); --text: #dbe5df; --text-muted: #94a3b8; --primary: #00b4ff; --secondary: #c77dff; --success: #10b981; --error: #ef4444; }
+  [data-theme="light"] { --bg: #f0f9ff; --card: rgba(255,255,255,0.8); --card-border: rgba(0,180,255,0.3); --text: #0c1512; --text-muted: #5a6b65; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+  .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(10,14,39,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 24px; }
+  [data-theme="light"] .nav-fixed { background: rgba(255,255,255,0.85); }
+  .nav-link { color: var(--text-muted); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+  .nav-link:hover, .nav-link.active { color: var(--primary); background: rgba(0,180,255,0.1); }
+  .nav-link.active { font-weight: 700; }
+  .theme-toggle-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(0,180,255,0.3); border-radius: 999px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 14px; }
+  [data-theme="light"] .theme-toggle-btn { background: rgba(0,180,255,0.1); color: #0c1512; }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; }
+  [data-theme="light"] .card { background: var(--card); }
+  .badge { display: inline-block; padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 999px; font-size: 11px; }
+  [data-theme="light"] .badge { background: rgba(0,180,255,0.1); }
+  .opt-btn { width: 100%; padding: 14px 16px; border-radius: 8px; text-align: left; background: rgba(255,255,255,0.03); color: var(--text); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 15px; font-family: inherit; }
+  [data-theme="light"] .opt-btn { background: rgba(255,255,255,0.7); color: #0c1512; border: 1px solid rgba(0,180,255,0.3); }
+  .opt-btn:hover:not(:disabled) { background: rgba(0,180,255,0.1); border-color: var(--primary); }
+  .opt-btn:disabled { cursor: not-allowed; }
+  .opt-correct { background: rgba(16,185,129,0.3) !important; border-color: var(--success) !important; color: var(--success) !important; }
+  .opt-incorrect { background: rgba(239,68,68,0.3) !important; border-color: var(--error) !important; color: var(--error) !important; }
+  [data-theme="light"] .opt-correct { color: #064e3b !important; }
+  [data-theme="light"] .opt-incorrect { color: #7f1d1d !important; }
+  .feedback { background: rgba(0,180,255,0.08); border: 1px solid rgba(0,180,255,0.25); border-radius: 8px; padding: 16px; margin-top: 16px; display: none; }
+  [data-theme="light"] .feedback { color: #0c1512; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); }
+  .feedback.incorrect { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); }
+  .next-btn { background: var(--primary); color: #0a0e27; font-weight: 700; padding: 12px 32px; border-radius: 999px; border: none; cursor: pointer; font-size: 14px; margin-top: 24px; transition: all 0.2s; }
+  .next-btn:hover { box-shadow: 0 0 20px rgba(0, 180, 255, 0.5); }
+  .next-btn:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); cursor: not-allowed; box-shadow: none; }
+  .tab-btn { padding: 16px 20px; background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: left; }
+  [data-theme="light"] .tab-btn { background: var(--card); }
+  .tab-btn.active { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 180, 255, 0.3); }
+  .tab-btn:hover:not(.active) { border-color: rgba(0, 180, 255, 0.4); }
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 16px; }
+  .progress-bar > div { height: 100%; background: var(--primary); transition: width 0.3s; }
+  .question-text { font-size: 18px; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<nav class="nav-fixed">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <a href="index.html" style="color: var(--primary); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: 0.1em;">MEDUSA</a>
+    <div class="hidden md:flex gap-2">
+      <a href="index.html" class="nav-link">Inicio</a>
+      <a href="species.html" class="nav-link">Especies</a>
+      <a href="biology.html" class="nav-link">Biología</a>
+      <a href="culture.html" class="nav-link">Cultura</a>
+      <a href="quiz.html" class="nav-link active">Quiz</a>
+    </div>
+    <button id="theme-btn" class="theme-toggle-btn" aria-label="Cambiar tema">🌙</button>
+  </div>
+</nav>
+
+<main style="max-width: 800px; margin: 0 auto; padding: 100px 24px 40px;">
+
+  <header style="text-align: center; margin-bottom: 32px;">
+    <h1 style="font-size: 3rem; font-weight: 900; color: var(--primary); margin-bottom: 8px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em;">🧠 CUESTIONARIO</h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem;">Pon a prueba tus conocimientos sobre las medusas. 3 niveles de dificultad.</p>
+  </header>
+
+  <div id="difficulty-tabs" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
+    <button class="tab-btn" data-diff="principiante" style="border-color: var(--primary); box-shadow: 0 0 20px rgba(0,180,255,0.3);">
+      <div class="badge" style="color: var(--success);">NIVEL 01</div>
+      <div style="font-weight: 700; margin-top: 4px;">PRINCIPIANTE</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Conceptos básicos</div>
+    </button>
+    <button class="tab-btn" data-diff="intermedio">
+      <div class="badge" style="color: var(--secondary);">NIVEL 02</div>
+      <div style="font-weight: 700; margin-top: 4px;">INTERMEDIO</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Ecología y ciclos</div>
+    </button>
+    <button class="tab-btn" data-diff="experto">
+      <div class="badge" style="color: #ef4444;">NIVEL 03</div>
+      <div style="font-weight: 700; margin-top: 4px;">EXPERTO</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Toxicología avanzada</div>
+    </button>
+  </div>
+
+  <div id="quiz-area">
+    <div class="card">
+      <div class="flex items-center justify-between mb-2" style="font-family: monospace; font-size: 13px;">
+        <span id="progress-text" style="color: var(--primary);"></span>
+        <span id="score-text" style="color: var(--text-muted);"></span>
+      </div>
+      <div class="progress-bar"><div id="progress-fill" style="width: 0%;"></div></div>
+
+      <div id="question-text" class="question-text"></div>
+      <div id="options-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+
+      <div id="feedback" class="feedback">
+        <div id="feedback-icon" style="font-size: 24px; margin-bottom: 8px;"></div>
+        <div id="feedback-text" style="font-weight: 600;"></div>
+        <div id="feedback-explanation" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <span id="q-counter" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+        <button id="next-btn" class="next-btn">SIGUIENTE →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="results-area" style="display: none;">
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 4rem; margin-bottom: 16px;">🏆</div>
+      <h2 style="font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 16px;">Resultado</h2>
+      <div id="final-score" style="font-size: 4rem; font-weight: 900; color: var(--primary); margin-bottom: 8px;"></div>
+      <div id="final-percent" style="color: var(--text-muted); margin-bottom: 16px;"></div>
+      <div id="result-message" style="font-size: 1.1rem; margin-bottom: 24px;"></div>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button id="restart-btn" class="next-btn">REINTENTAR</button>
+        <a href="index.html" class="next-btn" style="text-decoration: none; background: transparent; color: var(--primary); border: 1px solid var(--primary);">VOLVER</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function() {
+  'use strict';
+
+  const QUIZ = {
+    principiante: [
+      { q: "Las medusas son criaturas fascinantes porque carecen de muchos órganos que consideramos esenciales. ¿Qué estructuras principales les faltan en comparación con los seres humanos, además de cerebro, corazón y sangre?", a: ["Pulmones, huesos, ano", "Riñones, hígado, estómago", "Ojos, oídos, nariz", "Piel, músculos, tendones"], c: 0, e: "Las medusas no tienen cerebro, corazón, sangre, huesos, pulmones ni ano. La boca y el ano son el mismo orificio (cavidad gastrovascular)." },
+      { q: "Si tuvieras que poner una medusa en una licuadora, ¿qué porcentaje del resultado sería agua pura, considerando que el resto son sales y proteínas?", a: ["60%", "75%", "95%", "100%"], c: 2, e: "El 95% del cuerpo de una medusa es agua. El 4% son sales y el 1% proteínas como colágeno y elastina." },
+      { q: "Las medusas han habitado los océanos durante mucho más tiempo que los dinosaurios. ¿Cuánto tiempo más antiguo es su linaje comparado con los dinosaurios, los árboles con flores y los seres humanos?", a: ["10 veces más antiguo que dinosaurios, igual que árboles", "100 millones años más que dinosaurios", "500 millones años; 250 millones más que dinosaurios", "Igual que dinosaurios"], c: 2, e: "Las medusas existen hace 500+ millones de años, 250 millones más que los dinosaurios y 2,500 veces más antiguo que los humanos." },
+      { q: "El sistema nervioso de las medusas no está centralizado como en los humanos, pero aun así pueden coordinar comportamientos como la caza y la respuesta a estímulos. ¿Cómo se llama este tipo de sistema y por qué es eficaz?", a: ["Sistema radial; procesa en todas las direcciones simultáneamente", "Red nerviosa difusa; cualquier punto puede activar respuestas", "Sistema ganglionar; tiene nodos especializados", "Sistema lineal; transmite señales en una dirección"], c: 1, e: "La red nerviosa difusa permite que cualquier punto de la medusa active una respuesta, sin necesidad de un centro de procesamiento." },
+      { q: "La célula urticante de las medusas, llamada cnidocito, es uno de los mecanismos de ataque más rápidos y potentes del reino animal. ¿Cuál es su velocidad y aceleración de disparo comparadas con las mejores máquinas humanas?", a: ["700 nanosegundos, 5.4 millones de g (más rápido que una bala)", "1 segundo, 1000 g", "1 milisegundo, 100,000 g", "1 microsegundo, 1 millón de g"], c: 0, e: "Los cnidocitos disparan en 700 nanosegundos con 5.41 millones de g de aceleración, más rápido que una bala." },
+      { q: "Las medusas se reproducen de manera peculiar con un ciclo de vida que alterna entre una fase fija al sustrato y una fase de libre nado. ¿Cuáles son las fases principales en orden?", a: ["Huevo → Plánula → Pólipo → Estrobilo → Éfira → Medusa adulta", "Huevo → Pólipo → Medusa → Plánula", "Espora → Pólipo → Medusa → Adulto", "Larva → Pupa → Adulto → Medusa"], c: 0, e: "El ciclo es: huevo fecundado → blástula → plánula (larva libre) → pólipo (sésil) → estrobilo → éfira (medusa juvenil) → medusa adulta." },
+      { q: "La bioluminiscencia de las medusas se descubrió primero en una especie específica que después contribuyó a un avance biotecnológico revolucionario. ¿Qué proteína se aisló de la medusa Aequorea victoria y por qué es importante?", a: ["Hemocianina; transporte de oxígeno", "GFP (Green Fluorescent Protein); Premio Nobel 2008", "Luciferina; solo para defensa", "Miosina; contracción muscular"], c: 1, e: "La GFP (proteína verde fluorescente) de Aequorea victoria permitió visualizar células en tiempo real. Premio Nobel de Química 2008." },
+      { q: "Existen medusas que habitan exclusivamente en agua dulce, lo cual es raro considerando que el 99% de las especies son marinas. ¿Cuál es la única especie común de medusa de agua dulce y en qué tipo de ambiente se encuentra?", a: ["Aurelia aurita en ríos tropicales", "Craspedacusta sowerbii en lagos y estanques", "Physalia physalis en lagunas costeras", "Chironex fleckeri en manglares"], c: 1, e: "Craspedacusta sowerbii es la medusa de agua dulce más común, vive en lagos, estanques y ríos de todo el mundo." },
+      { q: "Las medusas son tan abundantes en los océanos que pueden formar blooms masivos que afectan pesquerías, centrales eléctricas y turismo. ¿Cuáles son los factores humanos que más contribuyen a su proliferación?", a: ["Lluvia ácida y deforestación", "Calentamiento global, acidificación y sobrepesca", "Contaminación acústica y basura plástica", "Erosión costera y turismo"], c: 1, e: "El calentamiento global expande hábitats tropicales, la acidificación las favorece sobre los peces, y la sobrepesca elimina competidores." },
+      { q: "La ingesta de medusas como alimento es una práctica milenaria en Asia. ¿Cuáles son las especies más consumidas, en qué forma se preparan y qué sabor tienen?", a: ["Aurelia aurita; frita, sabor dulce", "Rhopiloma esculentum; ensalada o salteada, crujiente y salada", "Chironex fleckeri; cruda, amarga", "Cyanea capillata; hervida, sin sabor"], c: 1, e: "Rhopiloma esculentum se consume en ensalada, salteada o frita. Textura crujiente, sabor suave y ligeramente salado. Más de 300,000 toneladas/año." }
+    ],
+    intermedio: [
+      { q: "La medusa Turritopsis dohrnii es famosa por su capacidad de invertir su propio envejecimiento mediante un proceso llamado transdiferenciación. ¿En qué consiste exactamente este proceso y por qué es importante para la investigación médica humana?", a: ["Las células se reproducen más rápido; podría usarse contra el cáncer", "Una célula adulta se transforma en otro tipo celular, revirtiendo el reloj biológico; relevante para medicina regenerativa y antienvejecimiento", "Las células intercambian ADN entre individuos; útil para terapia génica", "El organismo se reproduce asexualmente; no tiene relevancia médica"], c: 1, e: "La transdiferenciación permite a las células de Turritopsis convertirse en otros tipos celulares, revirtiendo el ciclo vital. Investigadores estudian esto para medicina regenerativa." },
+      { q: "El ciclo de vida de las medusas incluye una fase llamada estrobiliación donde un solo pólipo puede generar decenas de éfiras. ¿Qué es exactamente una éfira y por qué este proceso de reproducción asexual es relevante ecológicamente?", a: ["Es una larva sexual que busca pareja", "Es una medusa juvenil recién liberada del pólipo; permite blooms poblacionales explosivos cuando las condiciones son favorables", "Es un huevo fertilizado que se adhiere al fondo", "Es un pólipo adulto que se reproduce"], c: 1, e: "La éfira es una medusa juvenil miniatura que se libera del pólipo mediante estrobiliación. Permite blooms cuando las condiciones son óptimas (calor, alimento)." },
+      { q: "Las medusas poseen un sistema sensorial llamado ropalias que les permite detectar luz, gravedad, químicos y vibraciones. ¿Qué especie tiene el sistema visual más complejo entre las medusas y cuántas estructuras dedicadas a la visión posee?", a: ["Aurelia aurita con 4 ojos simples", "Chironex fleckeri (cubomedusa) con 24 ojos en 4 ropalias", "Cyanea capillata con 8 ojos", "Turritopsis dohrnii sin ojos"], c: 1, e: "Las cubomedusas como Chironex fleckeri tienen 24 ojos agrupados en 4 ropalias. Pueden ver colores y formas a pesar de no tener cerebro." },
+      { q: "La distribución geográfica de las medusas está determinada por múltiples factores físicos y químicos. ¿Cuáles son las variables más importantes que limitan dónde puede vivir una especie de medusa?", a: ["Solo la temperatura del agua", "Temperatura, salinidad, corrientes y disponibilidad de presas", "Solo la profundidad", "La presencia de tiburones"], c: 1, e: "La temperatura, salinidad, corrientes oceánicas y disponibilidad de plancton (presas) determinan la distribución de cada especie." },
+      { q: "La cadena alimenticia oceánica depende en gran medida de las medusas, ya que son alimento básico para muchas especies. ¿Qué porcentaje de la dieta de las tortugas marinas la constituyen las medusas, y qué pasaría si desaparecieran?", a: ["10%; impacto menor", "50-90%; el ecosistema colapsaría", "5%; ningún impacto", "100% morirían"], c: 1, e: "Las tortugas marinas comen entre 50-90% medusas. Si desaparecieran, colapsarían los ecosistemas marinos, incluyendo la pesca humana." },
+      { q: "Los blooms de medusas son eventos masivos que pueden tener consecuencias económicas enormes. ¿Qué pérdidas económicas se estiman por blooms en pesquerías globales y qué industria se ha visto más afectada?", a: ["Pérdidas menores, sin impacto", "Entre 5-50 millones por bloom; pesca y turismo", "Más de 100,000 millones globalmente; centrales nucleares, pesca, turismo", "Solo afectan a la acuicultura"], c: 2, e: "Los blooms de medusas afectan pesquerías (cientos de millones de dólares), turismo, plantas nucleares, acuicultura. En el Mar Negro, colapsaron la industria pesquera." },
+      { q: "El bloom de Mnemiopsis leidyi en el Mar Negro en los años 90 es considerado la invasión biológica más costosa de la historia. ¿Qué impacto tuvo y cuánto duró la recuperación?", a: ["Sin impacto, se adaptaron los peces", "Causó colapso total de la pesca durante una década, con pérdidas estimadas en 1 billón de dólares", "Mejoró la pesca al introducir nueva especie", "Solo afectó a una región pequeña"], c: 1, e: "El bloom de Mnemiopsis leidyi colapsó la pesca del Mar Negro durante 10+ años. La industria perdió cientos de millones anuales. Controlado eventualmente por Beroe ovata." },
+      { q: "Los arrecifes de coral están siendo devastados por el cambio climático, pero las medusas pueden proliferar en aguas más cálidas y menos oxigenadas. ¿Cómo afecta este reemplazo a los servicios ecosistémicos que los humanos obtienen de los océanos?", a: ["Las medusas no ofrecen servicios ecosistémicos", "Pérdida de biodiversidad, pesca, turismo, y colapso de cadenas alimenticias", "Mejoran la captura de carbono", "Aumentan la producción pesquera"], c: 1, e: "Los océanos dominados por medusas pierden biodiversidad, capacidad pesquera, valor turístico, y su función como sumideros de carbono." }
+    ],
+    experto: [
+      { q: "La GFP (Green Fluorescent Protein) aislada de Aequorea victoria revolucionó la biología molecular. ¿Cuál es el mecanismo bioquímico que la hace emitir luz verde, y por qué los investigadores la prefieren sobre otras proteínas fluorescentes para tagging celular?", a: ["Emite luz por combustión química; es la más brillante", "Su estructura beta-barril permite fusión genética sin alterar la proteína marcada; ciclo de maduración rápido; no requiere cofactores", "Se une al ADN y lo hace fluorescente", "Solo funciona en medusas"], c: 1, e: "La GFP tiene una estructura de beta-barril que la hace estable. Se puede fusionar genéticamente a cualquier proteína sin alterarla, madurando su fluorescencia sin cofactores externos. Nobel 2008." },
+      { q: "El mecanismo de disparo del cnidocito genera presiones osmóticas superiores a 15,000 PSI y aceleraciones de 5.4 millones de g. ¿Cómo logra la naturaleza generar esta potencia en una escala microscópica, y por qué este sistema no se considera un mecanismo de disparo convencional?", a: ["Usa pólvora química almacenada; es similar a una bala", "Almacena energía elástica en colágeno comprimido y la libera por cambio osmótico; supera cualquier sistema balístico conocido por 100x", "Usa electricidad estática", "Es presión de aire"], c: 1, e: "El cnidocito almacena energía elástica en una cápsula de colágeno enrollada. Un cambio osmótico dispara la liberación. Acelera más rápido que una bala (100x) sin usar pólvora ni aire." },
+      { q: "La transdiferenciación en Turritopsis dohrnii desafía conceptos fundamentales de la biología del desarrollo. ¿Por qué este proceso es relevante para entender el cáncer y el envejecimiento humano, según las líneas de investigación actuales?", a: ["No es relevante, solo curiosidad biológica", "Demuestra que la diferenciación celular es reversible; los mecanismos (factores Yamanaka, telomerasa) podrían reactivar células humanas para medicina regenerativa", "Solo es útil para la acuicultura de medusas", "Permite clonar humanos"], c: 1, e: "La transdiferenciación en medusas muestra que la diferenciación celular es reversible, similar a los factores Yamanaka (iPSCs) y la reactivación de telomerasa. Investigación activa en antienvejecimiento." },
+      { q: "La simetría radial de las medusas (orden 4) las hace modelos matemáticos interesantes. ¿Cómo afecta esta simetría a su locomoción por pulsación, y qué ecuaciones diferenciales describen este movimiento?", a: ["Las ecuaciones de Navier-Stokes describen su flujo; la simetría radial simplifica el problema a coordenadas cilíndricas", "No tiene relación con la física", "Solo se mueve en línea recta", "Las matemáticas no aplican a las medusas"], c: 0, e: "La propulsión a chorro de las medusas se modela con las ecuaciones de Navier-Stokes. Su simetría radial (orden 4) simplifica el problema a coordenadas cilíndricas 2D." },
+      { q: "La toxina de la avispa de mar (Chironex fleckeri) es una de las más letales. ¿Qué componente específico de su veneno causa paro cardíaco, en cuánto tiempo puede matar a un adulto sano, y existe antídoto?", a: ["Cianuro; 1 hora; no hay antídoto", "Toxina cardiotóxica (CfTX-A/B); minutos; sí hay antídoto (CSL antivenom) pero la ventana es muy corta", "Curare; días; sí hay antídoto", "Veneno neurotóxico; segundos; no hay antídoto"], c: 1, e: "La toxina de Chironex (CfTX) es cardiotóxica. Mata por paro cardíaco en 3-20 minutos. Existe antivenom australiano (CSL) pero debe administrarse en minutos." },
+      { q: "La neurotoxina de la Irukandji (Carukia barnesi) causa el síndrome de Irukandji con síntomas únicos. ¿Cuáles son esos síntomas, cuánto duran y por qué es médicamente diferente al envenenamiento por otras medusas?", a: ["Solo dolor muscular, dura minutos", "Síndrome con dolor extremo, hipertensión, sensación de muerte inminente; dura días o semanas; no se detecta por pruebas cutáneas iniciales", "Solo sarpullido", "Solo náuseas"], c: 1, e: "Síndrome Irukandji: dolor muscular extremo, calambres, hipertensión, sensación de muerte inminente. Dura días o semanas. No se detecta con pruebas cutáneas estándar de medusas." },
+      { q: "El cambio climático global está alterando la distribución y frecuencia de blooms de medusas. ¿Cuáles son los mecanismos científicos establecidos y qué especies invasoras específicas están documentadas como consecuencia?", a: ["No hay relación con cambio climático", "Calentamiento, acidificación y sobrepesca permiten blooms; ejemplos: Mnemiopsis leidyi (Mar Negro), Rhopilema nomurai (Mar de Japón)", "Solo afecta a las tropicales", "Disminuyen los blooms"], c: 1, e: "Mecanismos: (1) aguas más cálidas expanden hábitats tropicales, (2) acidificación favorece medusas sobre peces con caparazón de calcio, (3) sobrepesca elimina competidores. Invasiones: Mnemiopsis, Rhopilema nomurai." }
+    ]
+  };
+
+  let currentDiff = 'principiante';
+  let currentIndex = 0;
+  let score = 0;
+  let answered = false;
+
+  const els = {
+    tabs: document.querySelectorAll('.tab-btn'),
+    quizArea: document.getElementById('quiz-area'),
+    resultsArea: document.getElementById('results-area'),
+    qText: document.getElementById('question-text'),
+    qOptions: document.getElementById('options-container'),
+    qProgress: document.getElementById('progress-text'),
+    qProgressFill: document.getElementById('progress-fill'),
+    qScore: document.getElementById('score-text'),
+    qCounter: document.getElementById('q-counter'),
+    qFeedback: document.getElementById('feedback'),
+    qFeedbackIcon: document.getElementById('feedback-icon'),
+    qFeedbackText: document.getElementById('feedback-text'),
+    qFeedbackExplanation: document.getElementById('feedback-explanation'),
+    nextBtn: document.getElementById('next-btn'),
+    restartBtn: document.getElementById('restart-btn'),
+    finalScore: document.getElementById('final-score'),
+    finalPercent: document.getElementById('final-percent'),
+    resultMessage: document.getElementById('result-message'),
+    themeBtn: document.getElementById('theme-btn')
+  };
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    if (els.themeBtn) els.themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+  }
+  applyTheme(localStorage.getItem('jellyfish-theme') || 'dark');
+  if (els.themeBtn) {
+    els.themeBtn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme');
+      var next = cur === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('jellyfish-theme', next);
+      applyTheme(next);
+    });
+  }
+
+  function render() {
+    var data = QUIZ[currentDiff];
+    var total = data.length;
+    var q = data[currentIndex];
+    answered = false;
+    els.qText.textContent = q.q;
+    els.qProgress.textContent = 'Pregunta ' + (currentIndex + 1) + ' de ' + total;
+    els.qScore.textContent = 'Puntaje: ' + score;
+    els.qProgressFill.style.width = (((currentIndex + 1) / total) * 100) + '%';
+    els.qCounter.textContent = (currentIndex + 1) + ' / ' + total;
+    els.qFeedback.classList.remove('show', 'correct', 'incorrect');
+    els.nextBtn.textContent = (currentIndex === total - 1) ? 'VER RESULTADOS' : 'SIGUIENTE →';
+    els.nextBtn.disabled = true;
+
+    els.qOptions.innerHTML = '';
+    q.a.forEach(function(opt, idx) {
+      var btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.type = 'button';
+      btn.innerHTML = '<span>' + opt + '</span><span style="opacity:0.5;font-size:18px;">○</span>';
+      btn.addEventListener('click', function() { selectOption(idx, btn); });
+      els.qOptions.appendChild(btn);
+    });
+  }
+
+  function selectOption(idx, btn) {
+    if (answered) return;
+    answered = true;
+    var data = QUIZ[currentDiff];
+    var q = data[currentIndex];
+    var allBtns = els.qOptions.querySelectorAll('.opt-btn');
+    allBtns.forEach(function(b) { b.disabled = true; });
+
+    if (idx === q.c) {
+      btn.classList.add('opt-correct');
+      btn.querySelector('span:last-child').textContent = '✓';
+      btn.querySelector('span:last-child').style.opacity = '1';
+      score++;
+      els.qFeedback.classList.add('show', 'correct');
+      els.qFeedbackIcon.textContent = '✓';
+      els.qFeedbackText.textContent = '¡Correcto!';
+      els.qFeedbackText.style.color = '#10b981';
+    } else {
+      btn.classList.add('opt-incorrect');
+      btn.querySelector('span:last-child').textContent = '✗';
+      btn.querySelector('span:last-child').style.opacity = '1';
+      var correctBtn = allBtns[q.c];
+      if (correctBtn) {
+        correctBtn.classList.add('opt-correct');
+        correctBtn.querySelector('span:last-child').textContent = '✓';
+        correctBtn.querySelector('span:last-child').style.opacity = '1';
+      }
+      els.qFeedback.classList.add('show', 'incorrect');
+      els.qFeedbackIcon.textContent = '✗';
+      els.qFeedbackText.textContent = 'Incorrecto';
+      els.qFeedbackText.style.color = '#ef4444';
+    }
+    els.qFeedbackExplanation.textContent = q.e;
+    els.qScore.textContent = 'Puntaje: ' + score;
+    els.nextBtn.disabled = false;
+  }
+
+  function showResults() {
+    els.quizArea.style.display = 'none';
+    els.resultsArea.style.display = 'block';
+    var total = QUIZ[currentDiff].length;
+    var pct = Math.round((score / total) * 100);
+    els.finalScore.textContent = score + ' / ' + total;
+    els.finalPercent.textContent = pct + '% de respuestas correctas';
+    var msg = '';
+    if (pct === 100) msg = '🏆 ¡Perfecto! Eres un maestro de las medusas.';
+    else if (pct >= 80) msg = '🎉 ¡Excelente! Conoces mucho sobre medusas.';
+    else if (pct >= 60) msg = '👍 Bien. Sabes más que la mayoría de la gente.';
+    else if (pct >= 40) msg = '📚 No está mal. Te recomendamos leer la enciclopedia.';
+    else msg = '💪 Necesitas estudiar más. ¡Vuelve a intentarlo!';
+    els.resultMessage.textContent = msg;
+  }
+
+  function setDiff(diff) {
+    currentDiff = diff;
+    currentIndex = 0;
+    score = 0;
+    answered = false;
+    els.tabs.forEach(function(t) {
+      t.classList.remove('active');
+      t.style.borderColor = 'var(--card-border)';
+      t.style.boxShadow = 'none';
+    });
+    var activeTab = document.querySelector('.tab-btn[data-diff="' + diff + '"]');
+    if (activeTab) {
+      activeTab.classList.add('active');
+      activeTab.style.borderColor = 'var(--primary)';
+      activeTab.style.boxShadow = '0 0 20px rgba(0, 180, 255, 0.3)';
+    }
+    els.quizArea.style.display = 'block';
+    els.resultsArea.style.display = 'none';
+    render();
+  }
+
+  els.tabs.forEach(function(t) {
+    t.addEventListener('click', function() { setDiff(t.dataset.diff); });
+  });
+
+  els.nextBtn.addEventListener('click', function() {
+    var total = QUIZ[currentDiff].length;
+    if (currentIndex < total - 1) {
+      currentIndex++;
+      render();
+    } else {
+      showResults();
+    }
+  });
+
+  els.restartBtn.addEventListener('click', function() { setDiff(currentDiff); });
+
+  setDiff('principiante');
+
+  console.log('[Quiz] Ready. Total questions: ' + Object.keys(QUIZ).reduce(function(s,k){return s+QUIZ[k].length},0));
+})();
+</script>
+
+</body>
+</html>

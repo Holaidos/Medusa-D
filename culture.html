@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cultura y Aplicaciones · MEDUSA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --bg: #0a0e27; --card: rgba(255,255,255,0.03); --card-border: rgba(255,255,255,0.08); --text: #dbe5df; --text-muted: #94a3b8; --primary: #00b4ff; --secondary: #c77dff; }
+  [data-theme="light"] { --bg: #f0f9ff; --card: rgba(255,255,255,0.8); --card-border: rgba(0,180,255,0.3); --text: #0c1512; --text-muted: #5a6b65; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+  .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(10,14,39,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 24px; }
+  [data-theme="light"] .nav-fixed { background: rgba(255,255,255,0.85); }
+  .nav-link { color: var(--text-muted); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+  .nav-link:hover, .nav-link.active { color: var(--primary); background: rgba(0,180,255,0.1); }
+  .nav-link.active { font-weight: 700; }
+  .theme-toggle-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(0,180,255,0.3); border-radius: 999px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 14px; }
+  [data-theme="light"] .theme-toggle-btn { background: rgba(0,180,255,0.1); color: #0c1512; }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+  [data-theme="light"] .card { background: var(--card); }
+  .badge { display: inline-block; padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 999px; font-size: 11px; }
+  [data-theme="light"] .badge { background: rgba(0,180,255,0.1); }
+  .section-anchor { scroll-margin-top: 100px; padding: 60px 24px; max-width: 1100px; margin: 0 auto; }
+  .section-anchor h2 { font-size: 40px; font-weight: 800; color: var(--primary); margin: 0 0 16px; font-family: "Bebas Neue", system-ui, sans-serif; letter-spacing: 0.02em; }
+  .section-anchor h3 { font-size: 22px; font-weight: 700; margin: 32px 0 16px; }
+  p { color: var(--text-muted); margin: 12px 0; }
+  [data-theme="light"] p { color: #5a6b65; }
+  .grid-info { display: grid; gap: 16px; margin: 16px 0; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .grid-info .item { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; }
+  .grid-info .item h4 { color: var(--primary); margin: 0 0 8px; }
+  .grid-info .item p { margin: 4px 0; }
+  .hero-header { padding: 120px 24px 40px; text-align: center; }
+  .hero-header h1 { font-size: 3.5rem; font-weight: 900; color: var(--primary); margin-bottom: 8px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.02em; }
+  .hero-header p { color: var(--text-muted); max-width: 700px; margin: 0 auto; }
+  .anchors { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  .anchors a { padding: 6px 14px; background: rgba(0,180,255,0.1); color: var(--primary); border-radius: 999px; text-decoration: none; font-size: 0.85rem; }
+  .anchors a:hover { background: var(--primary); color: #0a0e27; }
+  [data-theme="light"] .anchors a:hover { color: #fff; }
+  .to-top { position: fixed; bottom: 24px; right: 24px; background: var(--primary); color: #0a0e27; border: none; border-radius: 999px; padding: 10px 20px; cursor: pointer; font-weight: 700; z-index: 40; }
+  .to-top:hover { box-shadow: 0 0 20px rgba(0, 180, 255, 0.5); }
+  [data-theme="light"] .to-top { color: #fff; }
+  .footer { text-align: center; padding: 40px 24px 80px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--card-border); margin-top: 60px; }
+</style>
+</head>
+<body>
+
+<nav class="nav-fixed">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <a href="index.html" style="color: var(--primary); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: 0.1em;">MEDUSA</a>
+    <div class="hidden md:flex gap-2">
+      <a href="index.html" class="nav-link">Inicio</a>
+      <a href="species.html" class="nav-link">Especies</a>
+      <a href="biology.html" class="nav-link">Biología</a>
+      <a href="culture.html" class="nav-link active">Cultura</a>
+      <a href="quiz.html" class="nav-link">Quiz</a>
+    </div>
+    <button id="theme-btn" class="theme-toggle-btn" aria-label="Cambiar tema">🌙</button>
+  </div>
+</nav>
+
+<header class="hero-header">
+  <h1>🌍 CULTURA Y APLICACIONES</h1>
+  <p>Cómo las medusas han influido en la gastronomía, la medicina, el arte, la industria y la exploración espacial humana.</p>
+  <div class="anchors">
+    <a href="#gastronomia">Gastronomía</a>
+    <a href="#medicina">Medicina</a>
+    <a href="#espacio">Espacio</a>
+    <a href="#arte">Arte y Moda</a>
+    <a href="#gaming">Gaming</a>
+    <a href="#industria">Industria</a>
+  </div>
+</header>
+
+<main style="max-width: 1000px; margin: 0 auto; padding: 0 24px;">
+
+  <section id="gastronomia" class="section-anchor">
+    <h2>🍽️ Gastronomía</h2>
+    <p>El consumo humano de medusas se remonta a más de 1,700 años en China. Hoy es una industria de más de 300,000 toneladas anuales en Asia.</p>
+
+    <h3>Especies Comestibles</h3>
+    <div class="grid-info">
+      <div class="item">
+        <h4>Rhopiloma esculentum</h4>
+        <p><strong>Región:</strong> Mar de China, Japón, Corea</p>
+        <p><strong>Preparación:</strong> Ensalada con aceite de sésamo, salsa de soja, vinagre y pepino</p>
+        <p><strong>Producción:</strong> ~250,000 ton/año</p>
+      </div>
+      <div class="item">
+        <h4>Rhopilema hispidum</h4>
+        <p><strong>Región:</strong> Pacífico Indo-Occidental</p>
+        <p><strong>Preparación:</strong> Salteada con ajo y chile. Como snack.</p>
+        <p><strong>Textura:</strong> Crujiente</p>
+      </div>
+      <div class="item">
+        <h4>Nemopilema nomurai</h4>
+        <p><strong>Región:</strong> Mar de Japón, China Oriental</p>
+        <p><strong>Tamaño:</strong> Hasta 200 kg, 2 m diámetro</p>
+        <p><strong>Problema:</strong> Blooms masivos en Japón afectan pesquerías</p>
+      </div>
+      <div class="item">
+        <h4>Stomolophus meleagris (Cannonball)</h4>
+        <p><strong>Región:</strong> Caribe, Atlántico Occidental (RD)</p>
+        <p><strong>Potencial:</strong> Alta proteína, bajo en grasa. Se ha propuesto como recurso alimenticio sostenible.</p>
+      </div>
+    </div>
+
+    <h3>Perfil Nutricional (Rhopilema esculentum, 100g seco)</h3>
+    <div class="grid-info">
+      <div class="item">
+        <h4>Calorías</h4>
+        <p><strong>36 kcal</strong> — Muy bajo en calorías</p>
+      </div>
+      <div class="item">
+        <h4>Proteína</h4>
+        <p><strong>3.0 g</strong> — Principalmente colágeno tipo II</p>
+      </div>
+      <div class="item">
+        <h4>Grasa</h4>
+        <p><strong>0.3 g</strong> — Prácticamente sin grasa</p>
+      </div>
+      <div class="item">
+        <h4>Carbohidratos</h4>
+        <p><strong>5.0 g</strong> — Bajo en carbohidratos</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="medicina" class="section-anchor">
+    <h2>💊 Medicina y Biotecnología</h2>
+    <p>Las medusas han revolucionado la investigación biomédica, especialmente con la GFP, pero también prometen avances en oncología y medicina regenerativa.</p>
+
+    <div class="grid-info">
+      <div class="item">
+        <h4>🧬 GFP (Green Fluorescent Protein)</h4>
+        <p>Aislada de <em>Aequorea victoria</em>. Permite visualizar procesos celulares en tiempo real. Premio Nobel de Química 2008.</p>
+      </div>
+      <div class="item">
+        <h4>🔬 Investigación de cáncer</h4>
+        <p>Toxinas medusoideas han mostrado capacidad de inducir apoptosis en células cancerosas in vitro. Investigaciones activas.</p>
+      </div>
+      <div class="item">
+        <h4>♾️ Medicina regenerativa</h4>
+        <p>La transdiferenciación de Turritopsis dohrnii inspira líneas de investigación en reprogramación celular y antienvejecimiento.</p>
+      </div>
+      <div class="item">
+        <h4>💉 Colágeno tipo II</h4>
+        <p>Las medusas son ricas en colágeno tipo II (mismo del cartílago humano). Se usa en suplementos para osteoartritis.</p>
+      </div>
+      <div class="item">
+        <h4>🩸 Antivenenos</h4>
+        <p>CSL Antivenom (Australia) contra picadura de avispa de mar. Eficaz si se aplica rápido (ventana de 20-30 min).</p>
+      </div>
+      <div class="item">
+        <h4>🧪 Neurociencia</h4>
+        <p>El cnidocito es modelo para entender canales iónicos y neurotransmisión, relevantes para enfermedades neuromusculares.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="espacio" class="section-anchor">
+    <h2>🚀 Espacio</h2>
+    <p>Las medusas han viajado al espacio y han inspirado investigación astrobiológica.</p>
+
+    <div class="grid-info">
+      <div class="item">
+        <h4>Misión STS-40 (1991)</h4>
+        <p>2,478 medusas (Aurelia aurita) enviadas al espacio en el transbordador Columbia. Objetivo: estudiar efectos de ingravidez en su desarrollo.</p>
+      </div>
+      <div class="item">
+        <h4>Hallazgo</h4>
+        <p>Las medusas nacidas en el espacio tenían un 80% más de anomalías en gravedad que las nacidas en la Tierra. La gravedad es esencial para su desarrollo normal.</p>
+      </div>
+      <div class="item">
+        <h4>🪐 Astrobiología</h4>
+        <p>Su capacidad de sobrevivir condiciones extremas las hace modelos para entender vida extraterrestre potencial.</p>
+      </div>
+      <div class="item">
+        <h4>🌌 Astrobiología lunar</h4>
+        <p>Polipos de medusa fueron expuestos a vacío y radiación simulada lunar. Algunos sobrevivieron 30 días.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="arte" class="section-anchor">
+    <h2>🎨 Arte, Moda y Cultura</h2>
+    <p>Las medusas han inspirado el arte, la moda y la cultura popular.</p>
+
+    <div class="grid-info">
+      <div class="item">
+        <h4>👗 Iris van Herpen</h4>
+        <p>Diseñadora holandesa. Colecciones 2011-2024 inspiradas en medusas, usando tecnología 3D printing. Famosa "Voltage" (2013).</p>
+      </div>
+      <div class="item">
+        <h4>🏛️ Toyo Ito</h4>
+        <p>Arquitecto japonés. Museo de Arte de Taichung (Taiwán) con fachada inspirada en medusas. Estructuras translúcidas ondulantes.</p>
+      </div>
+      <div class="item">
+        <h4>📚 Literatura</h4>
+        <p>Jules Verne (20,000 leguas de viaje submarino, 1870), Friedrich Nietzsche ("Medusa" en La gaya ciencia), y el cuento de Hans Christian Andersen.</p>
+      </div>
+      <div class="item">
+        <h4>🎬 Cine</h4>
+        <p>Aparecen en "Buscando a Nemo" (2003), "Avatar: The Way of Water" (2022), "Aquaman" (2018). Simbolizan misterio y profundidad.</p>
+      </div>
+      <div class="item">
+        <h4>💎 Joyería</h4>
+        <p>Tiffany & Co. y Cartier tienen colecciones con motivos de medusa. Materiales favoritos: perlas, ópalos, nácar.</p>
+      </div>
+      <div class="item">
+        <h4>🎵 Música</h4>
+        <p>"Jellyfish" canción de Phish. "Medusa" de J Balvin. "Jellyfish" EP de Sayuri. Pink Floyd usó medusas en visuales de The Wall.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="gaming" class="section-anchor">
+    <h2>🎮 Videojuegos</h2>
+    <p>Las medusas son enemigas, aliadas o personajes jugables en muchos juegos.</p>
+
+    <div class="grid-info">
+      <div class="item">
+        <h4>Pokémon</h4>
+        <p>Tentacool (#072), Tentacruel (#073), Vaporeon (evolución de Eevee, tipo Agua). Generación I.</p>
+      </div>
+      <div class="item">
+        <h4>Subnautica</h4>
+        <p>Medusas bioluminiscentes como fauna del mundo submarino. Diferentes especies con diferentes comportamientos.</p>
+      </div>
+      <div class="item">
+        <h4>Spore</h4>
+        <p>Fase de Creatura Marina. Las medusas son diseños populares para etapa acuática.</p>
+      </div>
+      <div class="item">
+        <h4>ARK: Survival Evolved</h4>
+        <p>Manta y Cnidaria (medusa electrocutante) como fauna peligrosa. Inflige daño de shock.</p>
+      </div>
+      <div class="item">
+        <h4>Dave the Diver</h4>
+        <p>Medusas como fauna del Blue Hole. Algunas dan materiales, otras son venenosas.</p>
+      </div>
+      <div class="item">
+        <h4>Genshin Impact</h4>
+        <p>Oceanyd (pez-medusa electrocutante) en la región de Fontaine.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="industria" class="section-anchor">
+    <h2>🏭 Industria y Economía</h2>
+    <p>Las medusas afectan múltiples industrias, tanto positiva como negativamente.</p>
+
+    <div class="grid-info">
+      <div class="item">
+        <h4>⚛️ Centrales nucleares</h4>
+        <p>Israel (Orot Rabin, 2021), Suecia (Oskarshamn, 2013), Filipinas (Sual, 2019), Escocia (Torness, 2011): blooms bloquearon sistemas de refrigeración.</p>
+      </div>
+      <div class="item">
+        <h4>🐟 Pesquerías</h4>
+        <p>En el Mar Negro, blooms de Mnemiopsis colapsaron la industria pesquera. Pérdidas: cientos de millones USD. Restaurada eventualmente por Beroe ovata (depredador natural).</p>
+      </div>
+      <div class="item">
+        <h4>🏖️ Turismo</h4>
+        <p>Australia pierde 35+ millones USD anuales por cierres de playas por blooms de medusas peligrosas.</p>
+      </div>
+      <div class="item">
+        <h4>🧬 Biomateriales</h4>
+        <p>Investigación de medusas como fuente de colágeno sostenible (alternativa a bovinos y porcinos).</p>
+      </div>
+      <div class="item">
+        <h4>🔬 Bioindicadores</h4>
+        <p>Se usan como bioindicadores de contaminación, cambio climático y salud oceánica.</p>
+      </div>
+      <div class="item">
+        <h4>🌱 Control biológico</h4>
+        <p>Se estudian como control de plagas de plancton. Algunas especies depredan cianobacterias.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<button class="to-top" id="to-top">↑ Arriba</button>
+
+<footer class="footer">
+  <p>Cultura y aplicaciones de las medusas · <a href="index.html" style="color: var(--primary);">← Volver al inicio</a></p>
+</footer>
+
+<script>
+(function() {
+  var themeBtn = document.getElementById('theme-btn');
+  var toTop = document.getElementById('to-top');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+  }
+  applyTheme(localStorage.getItem('jellyfish-theme') || 'dark');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme');
+      var next = cur === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('jellyfish-theme', next);
+      applyTheme(next);
+    });
+  }
+  if (toTop) {
+    toTop.addEventListener('click', function() { window.scrollTo({top: 0, behavior: 'smooth'}); });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MEDUSA · Enciclopedia de Medusas</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --bg: #0a0e27; --card: rgba(255,255,255,0.03); --card-border: rgba(255,255,255,0.08); --text: #dbe5df; --text-muted: #94a3b8; --primary: #00b4ff; --secondary: #c77dff; }
+  [data-theme="light"] { --bg: #f0f9ff; --card: rgba(255,255,255,0.8); --card-border: rgba(0,180,255,0.3); --text: #0c1512; --text-muted: #5a6b65; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+  .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(10,14,39,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 24px; }
+  [data-theme="light"] .nav-fixed { background: rgba(255,255,255,0.85); border-bottom: 1px solid rgba(0,180,255,0.2); }
+  .nav-link { color: var(--text-muted); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+  .nav-link:hover, .nav-link.active { color: var(--primary); background: rgba(0,180,255,0.1); }
+  .nav-link.active { font-weight: 700; }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; transition: transform 0.2s, border-color 0.2s; }
+  [data-theme="light"] .card { background: var(--card); }
+  .card:hover { transform: translateY(-2px); border-color: rgba(0,180,255,0.4); }
+  .theme-toggle-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(0,180,255,0.3); border-radius: 999px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 14px; }
+  [data-theme="light"] .theme-toggle-btn { background: rgba(0,180,255,0.1); color: #0c1512; }
+  .badge { display: inline-block; padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 999px; font-size: 11px; }
+  [data-theme="light"] .badge { background: rgba(0,180,255,0.1); color: #0066b3; }
+  .section-anchor { scroll-margin-top: 100px; padding: 60px 24px; max-width: 1100px; margin: 0 auto; }
+  .section-anchor h2 { font-size: 40px; font-weight: 800; color: var(--primary); margin: 0 0 16px; font-family: "Bebas Neue", system-ui, sans-serif; letter-spacing: 0.02em; }
+  .section-anchor h3 { font-size: 22px; font-weight: 700; margin: 32px 0 16px; }
+  .info-section p { color: var(--text-muted); margin: 12px 0; }
+  [data-theme="light"] .info-section p { color: #5a6b65; }
+  .grid-info { display: grid; gap: 16px; margin: 16px 0; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .grid-info .item { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; }
+  .hero { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 24px 60px; text-align: center; position: relative; }
+  .hero h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; background: linear-gradient(135deg, #00ffd1 0%, #00b4ff 50%, #c77dff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.05; margin-bottom: 1rem; }
+  .hero .subtitle { font-size: clamp(1.1rem, 2vw, 1.4rem); color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem; }
+  .hero .jelly { width: 180px; height: 200px; margin: 0 auto 2rem; animation: jellyPulse 3s ease-in-out infinite; }
+  @keyframes jellyPulse { 0%, 100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(0.85) scaleX(1.05); } }
+  .jelly svg { width: 100%; height: 100%; filter: drop-shadow(0 0 30px rgba(0, 180, 255, 0.4)); }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; max-width: 900px; margin: 0 auto; padding: 16px; }
+  .stat { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; text-align: center; }
+  .stat-num { font-size: 2rem; font-weight: 900; color: var(--primary); font-family: "SF Mono", monospace; }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
+  .nav-cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 32px; }
+  .nav-card { display: block; padding: 24px; background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; text-decoration: none; color: var(--text); transition: all 0.2s; }
+  .nav-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+  .nav-card .icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .nav-card .title { font-weight: 700; color: var(--primary); }
+  .nav-card .desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+  .nav-card .arrow { float: right; color: var(--primary); }
+  .footer { text-align: center; padding: 40px 24px 20px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--card-border); margin-top: 60px; }
+</style>
+</head>
+<body>
+
+<nav class="nav-fixed">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <a href="index.html" style="color: var(--primary); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: 0.1em;">MEDUSA</a>
+    <div class="hidden md:flex gap-2">
+      <a href="index.html" class="nav-link active">Inicio</a>
+      <a href="species.html" class="nav-link">Especies</a>
+      <a href="biology.html" class="nav-link">Biología</a>
+      <a href="culture.html" class="nav-link">Cultura</a>
+      <a href="quiz.html" class="nav-link">Quiz</a>
+    </div>
+    <button id="theme-btn" class="theme-toggle-btn" aria-label="Cambiar tema">🌙</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="jelly">
+    <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bg" cx="50%" cy="40%"><stop offset="0%" stop-color="rgba(0,180,255,0.4)"/><stop offset="100%" stop-color="rgba(0,180,255,0.15)"/></radialGradient>
+      </defs>
+      <path d="M 100 20 C 50 20 30 50 30 90 C 30 120 60 140 60 140 L 140 140 C 140 140 170 120 170 90 C 170 50 150 20 100 20 Z" fill="url(#bg)" stroke="#00b4ff" stroke-width="1.5"/>
+      <ellipse cx="100" cy="100" rx="35" ry="12" fill="rgba(0,180,255,0.2)"/>
+      <path d="M 50 140 Q 30 170 40 210" stroke="#00b4ff" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M 70 140 Q 60 175 65 215" stroke="#00b4ff" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M 90 140 Q 85 180 80 215" stroke="#00b4ff" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M 110 140 Q 115 180 120 215" stroke="#00b4ff" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M 130 140 Q 140 175 135 215" stroke="#00b4ff" stroke-width="2" fill="none" opacity="0.6"/>
+      <path d="M 150 140 Q 170 170 160 210" stroke="#00b4ff" stroke-width="2" fill="none" opacity="0.6"/>
+    </svg>
+  </div>
+  <h1>MEDUSAS</h1>
+  <p class="subtitle">500 millones de años. 0 cerebros. ∞ misterio.<br>La guía más completa sobre las criaturas más antiguas de la Tierra.</p>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">95%</div><div class="stat-label">Agua</div></div>
+    <div class="stat"><div class="stat-num">500M</div><div class="stat-label">Años</div></div>
+    <div class="stat"><div class="stat-num">0</div><div class="stat-label">Cerebros</div></div>
+    <div class="stat"><div class="stat-num">15+</div><div class="stat-label">Especies</div></div>
+    <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Inmortal</div></div>
+  </div>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+  <h2 class="text-3xl font-bold mb-2" style="color: var(--text);">Explora la enciclopedia</h2>
+  <p class="mb-6" style="color: var(--text-muted);">Toda la información sobre las medusas organizada en secciones navegables.</p>
+
+  <div class="nav-cards">
+    <a href="species.html" class="nav-card">
+      <span class="arrow">→</span>
+      <div class="icon">🪼</div>
+      <div class="title">Especies</div>
+      <div class="desc">15 medusas descritas con filtros por letalidad y hábitat.</div>
+    </a>
+    <a href="biology.html" class="nav-card">
+      <span class="arrow">→</span>
+      <div class="icon">🧬</div>
+      <div class="title">Biología</div>
+      <div class="desc">Anatomía, ciclo de vida, cnidocitos, bioluminiscencia.</div>
+    </a>
+    <a href="culture.html" class="nav-card">
+      <span class="arrow">→</span>
+      <div class="icon">🌍</div>
+      <div class="title">Cultura y Aplicaciones</div>
+      <div class="desc">Gastronomía, medicina, espacio, moda, videojuegos.</div>
+    </a>
+    <a href="quiz.html" class="nav-card">
+      <span class="arrow">→</span>
+      <div class="icon">🧠</div>
+      <div class="title">Quiz Interactivo</div>
+      <div class="desc">3 niveles: Principiante, Intermedio, Experto.</div>
+    </a>
+  </div>
+</main>
+
+<footer class="footer">
+  <p>Hecho con 95% agua y curiosidad · 🪼</p>
+  <p style="margin-top: 8px;">Fuentes: NOAA, Pro Consumidor RD, NCBI, National Geographic</p>
+</footer>
+
+<script>
+(function() {
+  var themeBtn = document.getElementById('theme-btn');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+  }
+  applyTheme(localStorage.getItem('jellyfish-theme') || 'dark');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme');
+      var next = cur === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('jellyfish-theme', next);
+      applyTheme(next);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

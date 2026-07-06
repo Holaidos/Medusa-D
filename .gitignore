@@ -1,0 +1,18 @@
+# Logs y archivos del sistema
+*.log
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.DS_Store
+._*
+.vscode/
+.idea/
+
+# Server
+server.log
+*.log
+
+# Editor
+*.tmp
+*~
