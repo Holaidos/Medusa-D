@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Artículos Científicos · MEDUSA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="responsive.css">
+<style>
+  :root { --bg: #0a0e27; --card: rgba(255,255,255,0.03); --card-border: rgba(255,255,255,0.08); --text: #dbe5df; --text-muted: #94a3b8; --primary: #00b4ff; --secondary: #c77dff; --success: #10b981; }
+  [data-theme="light"] { --bg: #f0f9ff; --card: rgba(255,255,255,0.8); --card-border: rgba(0,180,255,0.3); --text: #0c1512; --text-muted: #5a6b65; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+  .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(10,14,39,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 24px; }
+  [data-theme="light"] .nav-fixed { background: rgba(255,255,255,0.85); }
+  .nav-link { color: var(--text-muted); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+  .nav-link:hover, .nav-link.active { color: var(--primary); background: rgba(0,180,255,0.1); }
+  .nav-link.active { font-weight: 700; }
+  .theme-toggle-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(0,180,255,0.3); border-radius: 999px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 14px; }
+  [data-theme="light"] .theme-toggle-btn { background: rgba(0,180,255,0.1); color: #0c1512; }
+  .hero-header { padding: 100px 24px 32px; text-align: center; }
+  .hero-header h1 { font-size: clamp(1.8rem, 5vw, 3.5rem); font-weight: 900; color: var(--primary); margin-bottom: 8px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.02em; word-wrap: break-word; }
+  .hero-header p { color: var(--text-muted); max-width: 700px; margin: 0 auto; }
+  .anchors { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  .anchors a { padding: 6px 14px; background: rgba(0,180,255,0.1); color: var(--primary); border-radius: 999px; text-decoration: none; font-size: 0.85rem; }
+  .anchors a:hover { background: var(--primary); color: #0a0e27; }
+  [data-theme="light"] .anchors a:hover { color: #fff; }
+  .to-top { position: fixed; bottom: 24px; right: 24px; background: var(--primary); color: #0a0e27; border: none; border-radius: 999px; padding: 10px 20px; cursor: pointer; font-weight: 700; z-index: 40; }
+  .to-top:hover { box-shadow: 0 0 20px rgba(0, 180, 255, 0.5); }
+  [data-theme="light"] .to-top { color: #fff; }
+  .footer { text-align: center; padding: 40px 24px 80px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--card-border); margin-top: 60px; }
+
+  /* Article cards */
+  .articles-container { max-width: 1000px; margin: 0 auto; padding: 0 24px 40px; }
+  .article-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+  [data-theme="light"] .article-card { background: var(--card); }
+  .article-card:hover { transform: translateY(-2px); border-color: rgba(0,180,255,0.4); }
+  .article-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: rgba(0,180,255,0.15);
+    color: var(--primary);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 8px;
+  }
+  [data-theme="light"] .article-tag { background: rgba(0,180,255,0.15); color: #0066b3; }
+  .article-tag.genetics { background: rgba(199,125,255,0.2); color: var(--secondary); }
+  .article-tag.evolution { background: rgba(255,180,0,0.2); color: #fbbf24; }
+  .article-tag.ecology { background: rgba(16,185,129,0.2); color: #10b981; }
+  .article-tag.medicine { background: rgba(239,68,68,0.2); color: #ef4444; }
+  .article-tag.biomechanics { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .article-tag.space { background: rgba(168,85,247,0.2); color: #a855f7; }
+  .article-title { font-size: 1.3rem; font-weight: 700; margin: 8px 0; color: var(--text); }
+  [data-theme="light"] .article-title { color: #0c1512; }
+  .article-source { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+  [data-theme="light"] .article-source { color: #5a6b65; }
+  .article-source strong { color: var(--primary); }
+  .article-summary { font-size: 0.95rem; line-height: 1.6; margin: 12px 0; }
+  .article-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: #0a0e27;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+  [data-theme="light"] .article-link { color: #fff; }
+  .article-link:hover { box-shadow: 0 0 20px rgba(0,180,255,0.5); transform: translateY(-1px); }
+  .article-link::after { content: '↗'; font-size: 1rem; }
+  .article-section { margin-top: 40px; margin-bottom: 16px; padding-top: 16px; border-top: 1px solid var(--card-border); }
+  .article-section h2 { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
+  .article-section:first-of-type { border-top: none; margin-top: 0; }
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+  .filter-bar input { background: var(--card); color: var(--text); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 12px; font-family: inherit; font-size: 0.9rem; min-width: 250px; }
+  [data-theme="light"] .filter-bar input { background: #fff; color: #0c1512; border-color: rgba(0,180,255,0.3); }
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; max-width: 600px; margin: 16px auto 0; }
+  .stat-row div { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; text-align: center; }
+  .stat-row div strong { display: block; color: var(--primary); font-size: 1.5rem; }
+</style>
+</head>
+<body>
+
+<nav class="nav-fixed">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <a href="index.html" style="color: var(--primary); font-weight: 800; font-size: 18px; text-decoration: none; letter-spacing: 0.1em;">MEDUSA</a>
+    <div class="hidden md:flex gap-2">
+      <a href="index.html" class="nav-link">Inicio</a>
+      <a href="species.html" class="nav-link">Especies</a>
+      <a href="biology.html" class="nav-link">Biología</a>
+      <a href="culture.html" class="nav-link">Cultura</a>
+      <a href="articles.html" class="nav-link active">Articles</a>
+      <a href="quiz.html" class="nav-link">Quiz</a>
+    </div>
+    <button id="theme-btn" class="theme-toggle-btn" aria-label="Cambiar tema">🌙</button>
+  </div>
+</nav>
+
+<header class="hero-header">
+  <h1>📚 Artículos Científicos</h1>
+  <p>Investigaciones y descubrimientos sobre medusas publicados en revistas y laboratorios reconocidos. Haz click en cada artículo para ir a la fuente original.</p>
+  <div class="anchors">
+    <a href="#genetica">Genética y Biología Molecular</a>
+    <a href="#evolucion">Evolución e Inmunidad</a>
+    <a href="#ecologia">Ecología y Blooms</a>
+    <a href="#medicina">Medicina y Venenos</a>
+    <a href="#biomecanica">Biomecánica</a>
+    <a href="#espacio">Espacio y Otros</a>
+  </div>
+  <div class="stat-row">
+    <div><strong>10</strong>artículos</div>
+    <div><strong>7+</strong>fuentes</div>
+    <div><strong>1988-2026</strong>rango</div>
+  </div>
+</header>
+
+<main class="articles-container">
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <input type="text" id="search" placeholder="Buscar artículo, autor o tema..." />
+    <span style="color: var(--text-muted); font-size: 0.85rem;">Click en cualquier artículo para ir a la fuente</span>
+  </div>
+
+  <!-- ============ GENETICA ============ -->
+  <section id="genetica" class="article-section">
+    <h2>🧬 Genética y Biología Molecular</h2>
+
+    <article class="article-card" data-search="gfp osamu shimomura green fluorescent protein nobel química martin chalfie roger tsien">
+      <div>
+        <span class="article-tag genetics">Genética</span>
+        <span class="article-source"><strong>Revista:</strong> Wikipedia (Nobel Prize 2008) · <strong>Año:</strong> 2008</span>
+      </div>
+      <h3 class="article-title">Green Fluorescent Protein (GFP) — Proteína Verde Fluorescente</h3>
+      <p class="article-source">Osamu Shimomura, Martin Chalfie, Roger Y. Tsien</p>
+      <p class="article-summary">
+        La GFP, aislada originalmente de la medusa <em>Aequorea victoria</em>, es una proteína que emite fluorescencia verde al ser excitada con luz azul. Permite visualizar procesos celulares en tiempo real en organismos vivos. Premio Nobel de Química 2008. Es la base de toda la bioimagen moderna.
+      </p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Green_fluorescent_protein" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+
+    <article class="article-card" data-search="aequorea victoria bioluminiscencia luciferasa coelenterazina">
+      <div>
+        <span class="article-tag genetics">Genética</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia · <strong>Año:</strong> 2024 (última revisión)</span>
+      </div>
+      <h3 class="article-title">Aequorea victoria — La medusa que dio origen a la GFP</h3>
+      <p class="article-source">Aequorea victoria es una hidromedusa bioluminiscente del Pacífico Noroeste. Sus células producen GFP mediante la oxidación de la coelenterazina catalizada por la aequorina. Es la base de toda herramienta moderna de bioimagen.</p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Aequorea_victoria" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+  </section>
+
+  <!-- ============ EVOLUCION ============ -->
+  <section id="evolucion" class="article-section">
+    <h2>♾️ Evolución e Inmunidad</h2>
+
+    <article class="article-card" data-search="turritopsis dohrnii immortal jellyfish transdifferentiation reverse development piraino">
+      <div>
+        <span class="article-tag evolution">Evolución</span>
+        <span class="article-source"><strong>Revista:</strong> Wikipedia / Marine Biology · <strong>Año:</strong> 1996-2024</span>
+      </div>
+      <h3 class="article-title">Turritopsis dohrnii — La medusa biológicamente inmortal</h3>
+      <p class="article-source">Stefano Piraino, Ferdinando Boero, et al.</p>
+      <p class="article-summary">
+        <em>Turritopsis dohrnii</em> es la única especie conocida capaz de invertir completamente su desarrollo adulto: bajo estrés, sus células se transforman mediante transdiferenciación en una etapa de pólipo, reiniciando su ciclo de vida. Teóricamente puede repetir este proceso indefinidamente, siendo funcionalmente inmortal.
+      </p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Turritopsis_dohrnii" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+
+    <article class="article-card" data-search="aurelia moon jellyfish life cycle bioluminescence evolution cnidaria">
+      <div>
+        <span class="article-tag evolution">Evolución</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia / Marine Biology journals · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Aurelia aurita (Medusa Luna) — Biología y ciclo de vida</h3>
+      <p>La medusa luna es la especie más estudiada del mundo. Su ciclo de vida incluye fase pólipo sésil y medusa pelágica, con reproducción sexual y asexual (estrobiliación). Ha existido por más de 500 millones de años sin cambios morfológicos significativos.</p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Aurelia_aurita" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+  </section>
+
+  <!-- ============ ECOLOGIA ============ -->
+  <section id="ecologia" class="article-section">
+    <h2>🌊 Ecología y Blooms</h2>
+
+    <article class="article-card" data-search="jellyfish bloom climate change overfishing mnemiopsis black sea invasion">
+      <div>
+        <span class="article-tag ecology">Ecología</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia / Nature · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Jellyfish Blooms — Blooms masivos y cambio climático</h3>
+      <p class="article-source">Condon et al. (2013) y muchos otros</p>
+      <p class="article-summary">
+        Los blooms de medusas están aumentando globalmente. El cambio climático, la sobrepesca y la acidificación oceánica favorecen a las medusas sobre los peces. Algunos blooms colapsan pesquerías enteras, como el de <em>Mnemiopsis leidyi</em> en el Mar Negro que destruyó la industria pesquera local en los años 90.
+      </p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Jellyfish_bloom" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+
+    <article class="article-card" data-search="mnemiopsis leidyi black sea comb jelly invasion ecological impact">
+      <div>
+        <span class="article-tag ecology">Ecología</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Mnemiopsis leidyi — El ctenóforo invasor que cambió el Mar Negro</h3>
+      <p class="article-source">Documentado por B. V. Travis et al., 1993</p>
+      <p class="article-summary">
+        <em>Mnemiopsis leidyi</em> llegó al Mar Negro en los años 80 desde América del Norte vía agua de lastre. Sin depredadores naturales, proliferó hasta colapsar las pesquerías de anchoa y otros peces. Las pérdidas económicas se estimaron en cientos de millones de dólares. El control biológico llegó con su depredador natural, <em>Beroe ovata</em>.
+      </p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Mnemiopsis_leidyi" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+
+    <article class="article-card" data-search="nemopilema nomurai japan sea bloom fisheries impact">
+      <div>
+        <span class="article-tag ecology">Ecología</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Nemopilema nomurai — La medusa gigante del Mar de Japón</h3>
+      <p><em>Nemopilema nomurai</em> puede alcanzar 2 metros de diámetro y 200 kg. Sus blooms masivos en el Mar de Japón (cada 30-40 años desde 1920) devastan pesquerías de anchoa. Los científicos sospechan que el calentamiento oceánico está intensificando estos blooms.</p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Nemopilema_nomurai" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+  </section>
+
+  <!-- ============ MEDICINA ============ -->
+  <section id="medicina" class="article-section">
+    <h2>💊 Medicina y Venenos</h2>
+
+    <article class="article-card" data-search="chironex fleckeri box jellyfish venom antidote cardiac">
+      <div>
+        <span class="article-tag medicine">Medicina</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia / Nature · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Chironex fleckeri — La avispa de mar y su veneno</h3>
+      <p class="article-source">Documentado por el CSL Ltd. y múltiples investigadores australianos</p>
+      <p class="article-summary">
+        <em>Chironex fleckeri</em> es la medusa más mortífera del mundo. Su veneno contiene proteínas citolíticas que destruyen células del miocardio. Causa paro cardíaco en minutos. Existe un antiveneno (CSL Box Jellyfish Antivenom) pero debe administrarse en menos de 30 minutos. Mata al menos a 70 personas en Australia desde 1883.
+      </p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Chironex_fleckeri" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+
+    <article class="article-card" data-search="carukia barnesi irukandji syndrome venom">
+      <div>
+        <span class="article-tag medicine">Medicina</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Carukia barnesi — Síndrome de Irukandji</h3>
+      <p>Solo 1 cm de tamaño, pero su veneno causa el síndrome de Irukandji: dolor muscular extremo, hipertensión, vómitos prolongados y una sensación angustiosa de muerte inminente. La víctima puede pedir que la maten para acabar con el dolor. No hay antídoto efectivo.</p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Carukia_barnesi" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+  </section>
+
+  <!-- ============ BIOMECANICA ============ -->
+  <section id="biomecanica" class="article-section">
+    <h2>⚙️ Biomecánica</h2>
+
+    <article class="article-card" data-search="cnidocyte nematocyst hydra hydrostatic pressure harvard biophysics">
+      <div>
+        <span class="article-tag biomechanics">Biomecánica</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Cnidocito — El sistema de disparo más rápido del reino animal</h3>
+      <p class="article-source">Documentado por Nüchter et al., 2006 (Universidad de Jena)</p>
+      <p class="article-summary">
+        El cnidocito genera una presión osmótica de 15,000 PSI en 700 nanosegundos, acelerando un arpón a 5.4 millones de g (100x más rápido que una bala). Utiliza energía elástica almacenada en colágeno comprimido. La biofísica detrás de este sistema es inspiración para nuevos microdisparadores médicos.
+      </p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Cnidocyte" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+
+    <article class="article-card" data-search="aurelia aurita swimming propulsion fluid dynamics biomechanics">
+      <div>
+        <span class="article-tag biomechanics">Biomecánica</span>
+        <span class="article-source"><strong>Fuente:</strong> Wikipedia · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">Aurelia aurita — Hidrodinámica de propulsión a chorro</h3>
+      <p>La natación de las medusas se modela con las ecuaciones de Navier-Stokes. Su campana pulsante crea un anillo de vórtices que genera propulsión a chorro con eficiencia del 10-30%, menor que los peces (~80%), pero energéticamente económica para su tamaño corporal gelatinoso.</p>
+      <a class="article-link" href="https://en.wikipedia.org/wiki/Aurelia_aurita" target="_blank" rel="noopener">Leer en Wikipedia</a>
+    </article>
+  </section>
+
+  <!-- ============ ESPACIO ============ -->
+  <section id="espacio" class="article-section">
+    <h2>🚀 Espacio y Otros</h2>
+
+    <article class="article-card" data-search="noaa jellyfish facts ocean drift climate">
+      <div>
+        <span class="article-tag space">Espacio</span>
+        <span class="article-source"><strong>Fuente:</strong> NOAA Ocean Service · <strong>Año:</strong> 2024</span>
+      </div>
+      <h3 class="article-title">NOAA — Datos sobre medusas (Facts)</h3>
+      <p class="article-source">National Oceanic and Atmospheric Administration (USA)</p>
+      <p class="article-summary">
+        La agencia científica del gobierno de EE.UU. (NOAA) mantiene documentación oficial sobre las medusas: su biología, su rol en los ecosistemas marinos, y su importancia económica. Recurso de referencia para divulgadores, educadores y periodistas.
+      </p>
+      <a class="article-link" href="https://oceanservice.noaa.gov/facts/jellyfish.html" target="_blank" rel="noopener">Leer en NOAA</a>
+    </article>
+  </section>
+
+</main>
+
+<button class="to-top" id="to-top">↑ Arriba</button>
+
+<footer class="footer">
+  <p>Artículos científicos de fuentes públicas · <a href="index.html" style="color: var(--primary);">← Volver al inicio</a></p>
+  <p style="margin-top: 8px; font-size: 0.75rem;">Las fuentes son propiedad de sus respectivos autores y editoriales. Esta página solo enlaza a ellas.</p>
+</footer>
+
+<script>
+(function() {
+  // Theme
+  var themeBtn = document.getElementById('theme-btn');
+  var toTop = document.getElementById('to-top');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    if (themeBtn) themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
+  }
+  applyTheme(localStorage.getItem('jellyfish-theme') || 'dark');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme');
+      var next = cur === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('jellyfish-theme', next);
+      applyTheme(next);
+    });
+  }
+  if (toTop) toTop.addEventListener('click', function() { window.scrollTo({top: 0, behavior: 'smooth'}); });
+
+  // Search filter
+  var search = document.getElementById('search');
+  if (search) {
+    search.addEventListener('input', function() {
+      var q = search.value.toLowerCase().trim();
+      document.querySelectorAll('.article-card').forEach(function(card) {
+        var text = card.textContent.toLowerCase();
+        var keywords = (card.dataset.search || '').toLowerCase();
+        var match = !q || text.indexOf(q) !== -1 || keywords.indexOf(q) !== -1;
+        card.style.display = match ? 'block' : 'none';
+      });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
