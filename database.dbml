@@ -1,0 +1,239 @@
+Project medusa_db {
+  database_type: 'PostgreSQL'
+  Note: 'Diagrama de base de datos para el sitio enciclopedia de medusas. Cubre: usuarios, especies (15+), habitats, regiones, toxicidad, artículos científicos, quiz, alertas y tracking de interacciones.'
+}
+
+Table users {
+  id integer [pk, increment]
+  username varchar(50) [not null, unique]
+  email varchar(120) [not null, unique]
+  password_hash varchar(255) [not null]
+  role varchar(20) [default: 'reader', not null, note: 'reader|researcher|admin']
+  preferred_theme varchar(10) [default: 'dark', note: 'dark|light']
+  created_at timestamp [default: 'now()', not null]
+  last_login_at timestamp
+  Note: 'Usuarios del sitio. Pueden guardar favoritos, alertas y ver su progreso en el quiz.'
+}
+
+Table species {
+  id integer [pk, increment]
+  scientific_name varchar(100) [not null, unique]
+  common_name varchar(100)
+  family varchar(100)
+  class varchar(50) [note: 'Scyphozoa|Cubozoa|Hydrozoa|Staurozoa']
+  description text
+  max_diameter_cm decimal
+  max_tentacle_m decimal
+  lethality_level integer [not null, note: '0-5 según escala LVL']
+  is_immortal boolean [default: false]
+  source_data text [note: 'JSON con información adicional de fuentes']
+  created_at timestamp [default: 'now()', not null]
+  updated_at timestamp [default: 'now()']
+  Note: 'Catálogo de 15+ especies de medusas. Lethality_level corresponde a LVL del sistema.'
+  Indexes {
+    scientific_name [unique]
+    class
+    lethality_level
+  }
+}
+
+Table habitats {
+  id integer [pk, increment]
+  name varchar(50) [not null, unique, note: 'Costero|Plataforma|Pelagico|Abisal']
+  description text
+  depth_min_m integer [note: 'Profundidad mínima en metros']
+  depth_max_m integer [note: 'Profundidad máxima en metros']
+  Note: 'Tipos de habitats marinos donde viven las medusas.'
+}
+
+Table geographic_regions {
+  id integer [pk, increment]
+  name varchar(80) [not null, unique, note: 'Indo-Pacifico|Atlantico Norte|Mediterraneo|Caribe|Pacifico NE']
+  description text
+  hemisphere varchar(20) [note: 'norte|sur|ambos']
+  Note: 'Regiones geográficas donde se distribuyen las especies.'
+}
+
+Table species_habitats {
+  species_id integer [not null, ref: > species.id]
+  habitat_id integer [not null, ref: > habitats.id]
+  Indexes {
+    (species_id, habitat_id) [pk]
+  }
+  Note: 'Tabla de unión many-to-many: species <-> habitats.'
+}
+
+Table species_regions {
+  species_id integer [not null, ref: > species.id]
+  region_id integer [not null, ref: > geographic_regions.id]
+  Indexes {
+    (species_id, region_id) [pk]
+  }
+  Note: 'Tabla de unión many-to-many: species <-> regions.'
+}
+
+Table toxicity_profiles {
+  id integer [pk, increment]
+  species_id integer [not null, ref: > species.id, unique]
+  venom_type varchar(100) [note: 'cardiotoxic|neurotoxic|dermatotoxic']
+  ld50_mg_kg decimal [note: 'Dosis letal 50']
+  symptoms text
+  first_aid text
+  antivenom_available boolean [default: false]
+  antivenom_name varchar(100)
+  Note: 'Detalle toxicológico de cada especie. 1:1 con species.'
+}
+
+Table articles {
+  id integer [pk, increment]
+  title varchar(255) [not null]
+  source_url text [not null]
+  source_name varchar(200) [not null, note: 'Wikipedia|Nature|Science|Cell|PNAS']
+  topic varchar(50) [not null, note: 'genetica|evolucion|ecologia|medicina|biomecanica|espacio']
+  summary text [not null, note: 'Resumen breve mostrado en el sitio']
+  published_year integer
+  authors varchar(255)
+  language varchar(10) [default: 'es']
+  created_at timestamp [default: 'now()', not null]
+  Indexes {
+    topic
+    source_name
+  }
+}
+
+Table species_articles {
+  species_id integer [not null, ref: > species.id]
+  article_id integer [not null, ref: > articles.id]
+  Indexes {
+    (species_id, article_id) [pk]
+  }
+  Note: 'Many-to-many: artículos que mencionan una especie.'
+}
+
+Table quiz_questions {
+  id integer [pk, increment]
+  difficulty varchar(20) [not null, note: 'principiante|intermedio|experto']
+  question text [not null]
+  option_a varchar(255) [not null]
+  option_b varchar(255) [not null]
+  option_c varchar(255) [not null]
+  option_d varchar(255) [not null]
+  correct_answer char(1) [not null, note: 'A|B|C|D']
+  explanation text [not null]
+  Note: 'Banco de 25 preguntas del quiz (10 principiante, 8 intermedio, 7 experto).'
+  Indexes {
+    difficulty
+  }
+}
+
+Table quiz_attempts {
+  id integer [pk, increment]
+  user_id integer [ref: > users.id, note: 'NULL para usuarios anónimos']
+  difficulty varchar(20) [not null]
+  score integer [not null]
+  total_questions integer [not null]
+  percentage decimal [not null]
+  answers_json text [not null, note: 'JSON con respuestas del usuario']
+  duration_seconds integer
+  created_at timestamp [default: 'now()', not null]
+  Note: 'Registro de cada intento del quiz por usuario.'
+  Indexes {
+    user_id
+    difficulty
+    created_at
+  }
+}
+
+Table user_favorites {
+  user_id integer [not null, ref: > users.id]
+  species_id integer [not null, ref: > species.id]
+  created_at timestamp [default: 'now()', not null]
+  Indexes {
+    (user_id, species_id) [pk]
+  }
+  Note: 'Especies marcadas como favoritas por el usuario.'
+}
+
+Table user_alerts {
+  id integer [pk, increment]
+  user_id integer [not null, ref: > users.id]
+  species_id integer [not null, ref: > species.id]
+  alert_type varchar(20) [not null, note: 'price_drop|news_update|distribution_change']
+  threshold decimal [note: 'Para alertas de precio (futuro)']
+  active boolean [default: true, not null]
+  created_at timestamp [default: 'now()', not null]
+  triggered_at timestamp
+  Note: 'Alertas personalizadas por especie y tipo.'
+  Indexes {
+    user_id
+    species_id
+    active
+  }
+}
+
+Table search_history {
+  id integer [pk, increment]
+  user_id integer [ref: > users.id, note: 'NULL para anónimos']
+  session_id varchar(100) [note: 'Cookie de sesión']
+  query_text varchar(255) [not null]
+  results_count integer
+  created_at timestamp [default: 'now()', not null]
+  Note: 'Búsquedas realizadas por usuarios para análisis de popularidad.'
+  Indexes {
+    query_text
+    created_at
+  }
+}
+
+Table article_clicks {
+  id integer [pk, increment, note: 'Tracking']
+  user_id integer [ref: > users.id, note: 'NULL para anónimos']
+  session_id varchar(100)
+  article_id integer [not null, ref: > articles.id]
+  source_page varchar(100) [note: 'articles.html|bibliography']
+  created_at timestamp [default: 'now()', not null]
+  Note: 'Analytics: clicks en enlaces externos a fuentes.'
+  Indexes {
+    article_id
+    created_at
+  }
+}
+
+Table species_locations {
+  id integer [pk, increment]
+  species_id integer [not null, ref: > species.id]
+  latitude decimal [not null]
+  longitude decimal [not null]
+  location_name varchar(200)
+  sighting_date date
+  source_article_id integer [ref: > articles.id]
+  Note: 'Avistamientos georeferenciados de especies (de MBARI, iNaturalist, GBIF).'
+  Indexes {
+    species_id
+  }
+}
+
+Table sessions {
+  id varchar(50) [pk, note: 'UUID de sesión']
+  user_id integer [ref: > users.id, note: 'NULL para anónimos']
+  ip_hash varchar(64) [note: 'Hash del IP para privacidad']
+  user_agent varchar(500)
+  referrer varchar(500)
+  country varchar(2) [note: 'ISO country code']
+  started_at timestamp [default: 'now()', not null]
+  last_activity_at timestamp [default: 'now()']
+  Note: 'Tracking de sesiones para analytics.'
+}
+
+Table page_views {
+  id integer [pk, increment]
+  session_id varchar(50) [not null, ref: > sessions.id]
+  page_path varchar(200) [not null, note: 'index.html|species.html|biology.html|culture.html|articles.html|quiz.html']
+  referrer_page varchar(200)
+  time_on_page_seconds integer
+  viewed_at timestamp [default: 'now()', not null]
+  Indexes {
+    page_path
+    viewed_at
+  }
+}
