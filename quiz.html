@@ -133,35 +133,18 @@
 (function() {
   'use strict';
 
-  var QUIZ = { principiante: [], intermedio: [], experto: [] };
+  var SUPABASE_URL = 'https://ohwwehbadhtysmwjvfoy.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9od3dlaGJhZGh0eXNtd2p2Zm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTg0MjMsImV4cCI6MjA5OTA5NDQyM30.DtlcpFcDbONfjjTiIcL4PlX0sscv7ccRkwYoX_WMCp0';
+  var QUESTIONS_PER_QUIZ = 8;
 
-  fetch('https://ohwwehbadhtysmwjvfoy.supabase.co/rest/v1/quiz_questions?order=id.asc', {
-    headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9od3dlaGJhZGh0eXNtd2p2Zm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTg0MjMsImV4cCI6MjA5OTA5NDQyM30.DtlcpFcDbONfjjTiIcL4PlX0sscv7ccRkwYoX_WMCp0', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9od3dlaGJhZGh0eXNtd2p2Zm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTg0MjMsImV4cCI6MjA5OTA5NDQyM30.DtlcpFcDbONfjjTiIcL4PlX0sscv7ccRkwYoX_WMCp0' }
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(questions) {
-    questions.forEach(function(q) {
-      var diff = q.difficulty;
-      if (!QUIZ[diff]) QUIZ[diff] = [];
-      QUIZ[diff].push({
-        q: q.question,
-        a: [q.option_a, q.option_b, q.option_c, q.option_d],
-        c: { A: 0, B: 1, C: 2, D: 3 }[q.correct_answer] || 0,
-        e: q.explanation
-      });
-    });
-    setDiff('principiante');
-  })
-  .catch(function() {
-    document.getElementById('question-text').textContent = 'Error al cargar preguntas desde Supabase';
-  });
+  var QUIZ_BANK = { principiante: [], intermedio: [], experto: [] };
+  var currentQuiz = [];
+  var currentDiff = 'principiante';
+  var currentIndex = 0;
+  var score = 0;
+  var answered = false;
 
-  let currentDiff = 'principiante';
-  let currentIndex = 0;
-  let score = 0;
-  let answered = false;
-
-  const els = {
+  var els = {
     tabs: document.querySelectorAll('.tab-btn'),
     quizArea: document.getElementById('quiz-area'),
     resultsArea: document.getElementById('results-area'),
@@ -197,10 +180,50 @@
     });
   }
 
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function pickQuestions(diff) {
+    var bank = QUIZ_BANK[diff];
+    if (!bank || bank.length === 0) return [];
+    var count = Math.min(QUESTIONS_PER_QUIZ, bank.length);
+    var shuffled = shuffle(bank.slice());
+    return shuffled.slice(0, count);
+  }
+
+  fetch(SUPABASE_URL + '/rest/v1/quiz_questions?order=id.asc', {
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(questions) {
+    questions.forEach(function(q) {
+      var diff = q.difficulty;
+      if (!QUIZ_BANK[diff]) QUIZ_BANK[diff] = [];
+      QUIZ_BANK[diff].push({
+        q: q.question,
+        a: [q.option_a, q.option_b, q.option_c, q.option_d],
+        c: { A: 0, B: 1, C: 2, D: 3 }[q.correct_answer] || 0,
+        e: q.explanation
+      });
+    });
+    setDiff('principiante');
+  })
+  .catch(function() {
+    document.getElementById('question-text').textContent = 'Error al cargar preguntas desde Supabase';
+  });
+
   function render() {
-    var data = QUIZ[currentDiff];
-    var total = data.length;
-    var q = data[currentIndex];
+    var total = currentQuiz.length;
+    if (total === 0) {
+      els.qText.textContent = 'No hay preguntas disponibles para este nivel.';
+      return;
+    }
+    var q = currentQuiz[currentIndex];
     answered = false;
     els.qText.textContent = q.q;
     els.qProgress.textContent = 'Pregunta ' + (currentIndex + 1) + ' de ' + total;
@@ -225,8 +248,7 @@
   function selectOption(idx, btn) {
     if (answered) return;
     answered = true;
-    var data = QUIZ[currentDiff];
-    var q = data[currentIndex];
+    var q = currentQuiz[currentIndex];
     var allBtns = els.qOptions.querySelectorAll('.opt-btn');
     allBtns.forEach(function(b) { b.disabled = true; });
 
@@ -262,7 +284,7 @@
   function showResults() {
     els.quizArea.style.display = 'none';
     els.resultsArea.style.display = 'block';
-    var total = QUIZ[currentDiff].length;
+    var total = currentQuiz.length;
     var pct = Math.round((score / total) * 100);
     els.finalScore.textContent = score + ' / ' + total;
     els.finalPercent.textContent = pct + '% de respuestas correctas';
@@ -277,6 +299,7 @@
 
   function setDiff(diff) {
     currentDiff = diff;
+    currentQuiz = pickQuestions(diff);
     currentIndex = 0;
     score = 0;
     answered = false;
@@ -301,7 +324,7 @@
   });
 
   els.nextBtn.addEventListener('click', function() {
-    var total = QUIZ[currentDiff].length;
+    var total = currentQuiz.length;
     if (currentIndex < total - 1) {
       currentIndex++;
       render();
