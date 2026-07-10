@@ -91,32 +91,25 @@
     ctx.stroke();
 
     // tentacles
-    var tentCount = 6 + Math.floor(s / 8);
+    var tentCount = 7 + Math.floor(s / 7);
     for (var t = 0; t < tentCount; t++) {
-      var tx = (t / (tentCount - 1 || 1) - 0.5) * s * 1.6 * pulse;
-      var len = s * (1 + Math.random() * 0.8);
+      var tfrac = t / (tentCount - 1 || 1);
+      var tx = (tfrac - 0.5) * s * 2 * pulse;
+      var startY = -s * 0.1 - Math.abs(tfrac - 0.5) * s * 0.15;
+      var len = s * (0.8 + Math.random() * 1.2);
+      var drift = (tfrac - 0.5) * s * 0.3;
       ctx.beginPath();
-      ctx.moveTo(tx, -s * 0.1);
-      ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.5)';
-      ctx.lineWidth = 1.2 + Math.random() * 0.8;
+      ctx.moveTo(tx, startY);
+      ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.55)';
+      ctx.lineWidth = 1.5 + Math.random() * 1;
       ctx.lineCap = 'round';
 
-      var segments = 10;
-      for (var k = 0; k <= segments; k++) {
-        var py = -s * 0.1 + (k / segments) * len;
-        var px = Math.sin(j.phase + k * 0.6 + j.pulse * 0.4) * (s * 0.18) * (k / segments);
-        ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-
-      // second thinner overlapping tentacle for depth
-      ctx.beginPath();
-      ctx.moveTo(tx + (Math.random() - 0.5) * 3, -s * 0.1);
-      ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.25)';
-      ctx.lineWidth = 0.6 + Math.random() * 0.4;
-      for (var k = 0; k <= segments; k++) {
-        var py = -s * 0.1 + (k / segments) * (len * 0.8);
-        var px = Math.sin(j.phase + k * 0.5 + j.pulse * 0.3) * (s * 0.15) * (k / segments);
+      var segments = 12;
+      for (var k = 1; k <= segments; k++) {
+        var frac = k / segments;
+        var py = startY + frac * len;
+        var wave = Math.sin(j.phase + frac * 1.2 + t * 0.5 + j.pulse * 0.3) * (s * 0.2) * frac;
+        var px = tx + wave + drift * frac * frac;
         ctx.lineTo(px, py);
       }
       ctx.stroke();
