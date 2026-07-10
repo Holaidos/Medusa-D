@@ -40,7 +40,7 @@
       swayAmount: 15 + Math.random() * 30,
       phase: Math.random() * Math.PI * 2,
       color: colors[Math.floor(Math.random() * colors.length)],
-      opacity: (isLight ? 0.08 : 0.12) + Math.random() * 0.06,
+      opacity: (isLight ? 0.18 : 0.28) + Math.random() * 0.08,
       pulse: Math.random() * Math.PI * 2
     };
   }
@@ -63,11 +63,11 @@
 
     // outer glow
     var grad = ctx.createRadialGradient(0, -s * 0.2 * pulse, 0, 0, -s * 0.2 * pulse, s * 1.5);
-    grad.addColorStop(0, 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.15)');
+    grad.addColorStop(0, 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.3)');
     grad.addColorStop(1, 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(0, -s * 0.2 * pulse, s * 1.5, 0, Math.PI * 2);
+    ctx.arc(0, -s * 0.2 * pulse, s * 2, 0, Math.PI * 2);
     ctx.fill();
 
     // dome
@@ -76,29 +76,29 @@
     ctx.quadraticCurveTo(-s * pulse, -s * 0.8 * pulse, 0, -s * pulse);
     ctx.quadraticCurveTo(s * pulse, -s * 0.8 * pulse, s * pulse, -s * 0.1);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.15)';
+    ctx.fillStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.25)';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.25)';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.4)';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
     // inner dome highlight
     ctx.beginPath();
     ctx.moveTo(-s * 0.4 * pulse, -s * 0.3);
     ctx.quadraticCurveTo(0, -s * 0.85 * pulse, s * 0.4 * pulse, -s * 0.3);
-    ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.2)';
-    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.3)';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // tentacles
-    var tentCount = 3 + Math.floor(s / 12);
+    var tentCount = 5 + Math.floor(s / 10);
     for (var t = 0; t < tentCount; t++) {
-      var tx = (t / (tentCount - 1 || 1) - 0.5) * s * 1.4 * pulse;
+      var tx = (t / (tentCount - 1 || 1) - 0.5) * s * 1.6 * pulse;
       ctx.beginPath();
       ctx.moveTo(tx, -s * 0.1);
-      var len = s * (0.6 + Math.random() * 0.5);
-      ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.12)';
-      ctx.lineWidth = 0.5 + Math.random() * 0.4;
+      var len = s * (0.8 + Math.random() * 0.6);
+      ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.2)';
+      ctx.lineWidth = 0.8 + Math.random() * 0.5;
       ctx.lineCap = 'round';
 
       var segments = 6;
@@ -136,9 +136,9 @@
 
   var observer = new MutationObserver(function() {
     var isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    var base = isLight ? 0.08 : 0.12;
+    var base = isLight ? 0.18 : 0.28;
     for (var i = 0; i < jellies.length; i++) {
-      jellies[i].opacity = base + Math.random() * 0.06;
+      jellies[i].opacity = base + Math.random() * 0.08;
     }
   });
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
