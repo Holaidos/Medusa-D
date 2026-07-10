@@ -108,7 +108,7 @@
       for (var k = 1; k <= segments; k++) {
         var frac = k / segments;
         var py = startY + frac * len;
-        var wave = Math.sin(j.phase + frac * 1.2 + t * 0.5 + j.pulse * 0.3) * (s * 0.2) * frac;
+        var wave = Math.sin(j.phase + frac * 0.6 + t * 0.3 + j.pulse * 0.2) * (s * 0.2) * frac;
         var px = tx + wave + drift * frac * frac;
         ctx.lineTo(px, py);
       }
@@ -128,8 +128,8 @@
       var j = jellies[i];
       j.y -= j.speed;
       j.sway += j.swaySpeed;
-      j.phase += 0.02;
-      j.pulse += 0.01;
+      j.phase += 0.004;
+      j.pulse += 0.003;
       drawJelly(j);
       if (j.y < -j.size * 3) {
         jellies[i] = createJelly();
