@@ -35,7 +35,9 @@
       arr.push({
         len: s * (0.8 + Math.random() * 1),
         lw: 1.5 + Math.random() * 1,
-        endOff: (Math.random() - 0.5) * s * 0.1
+        endOff: (Math.random() - 0.5) * s * 0.15,
+        phaseOff: Math.random() * Math.PI * 2,
+        swayAmp: 2 + Math.random() * 4
       });
     }
     return arr;
@@ -55,6 +57,7 @@
       color: colors[Math.floor(Math.random() * colors.length)],
       opacity: (isLight ? 0.18 : 0.28) + Math.random() * 0.08,
       pulse: Math.random() * Math.PI * 2,
+      phase: Math.random() * Math.PI * 2,
       tentacles: makeTentacles(s)
     };
   }
@@ -106,25 +109,33 @@
 
     // tentacles
     var tentData = j.tentacles;
-    var swayPhase = Math.sin(j.sway);
     for (var t = 0; t < tentData.length; t++) {
       var td = tentData[t];
       var tfrac = t / (tentData.length - 1 || 1);
       var tx = (tfrac - 0.5) * s * 2 * pulse;
       var startY = -s * 0.1 - Math.abs(tfrac - 0.5) * s * 0.15;
       var drift = (tfrac - 0.5) * s * 0.3;
-      var swayOffset = swayPhase * s * 0.2 * (tfrac - 0.5) * 0.5;
+      var wave = Math.sin(j.phase * 0.8 + td.phaseOff) * td.swayAmp;
+      var wave2 = Math.sin(j.phase * 0.6 + td.phaseOff + 1.2) * td.swayAmp * 0.6;
       ctx.beginPath();
       ctx.moveTo(tx, startY);
       ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.55)';
       ctx.lineWidth = td.lw;
       ctx.lineCap = 'round';
 
-      var cpX = tx + swayOffset + drift * 0.5;
+      var cpX = tx + drift * 0.5 + wave * 0.6;
       var cpY = startY + td.len * 0.5;
-      var endX = tx + swayOffset + drift + td.endOff;
+      var endX = tx + drift + wave + td.endOff;
       var endY = startY + td.len;
       ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+
+      // inner strand for depth
+      ctx.beginPath();
+      ctx.moveTo(tx - 1, startY);
+      ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.2)';
+      ctx.lineWidth = td.lw * 0.4;
+      ctx.lineCap = 'round';
+      ctx.quadraticCurveTo(cpX + wave2 * 0.3, cpY, endX + wave2, endY);
       ctx.stroke();
     }
 
@@ -142,6 +153,7 @@
       j.y -= j.speed;
       j.sway += j.swaySpeed;
       j.pulse += 0.003;
+      j.phase += 0.008;
       drawJelly(j);
       if (j.y < -j.size * 3) {
         jellies[i] = createJelly();
