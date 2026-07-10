@@ -92,26 +92,25 @@
 
     // tentacles
     var tentCount = 7 + Math.floor(s / 7);
+    var swayPhase = Math.sin(j.sway);
     for (var t = 0; t < tentCount; t++) {
       var tfrac = t / (tentCount - 1 || 1);
       var tx = (tfrac - 0.5) * s * 2 * pulse;
       var startY = -s * 0.1 - Math.abs(tfrac - 0.5) * s * 0.15;
-      var len = s * (0.8 + Math.random() * 1.2);
+      var len = s * (0.8 + Math.random() * 1);
       var drift = (tfrac - 0.5) * s * 0.3;
+      var swayOffset = swayPhase * s * 0.2 * (tfrac - 0.5) * 0.5;
       ctx.beginPath();
       ctx.moveTo(tx, startY);
       ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.55)';
       ctx.lineWidth = 1.5 + Math.random() * 1;
       ctx.lineCap = 'round';
 
-      var segments = 12;
-      for (var k = 1; k <= segments; k++) {
-        var frac = k / segments;
-        var py = startY + frac * len;
-        var wave = Math.sin(j.phase + frac * 0.6 + t * 0.3 + j.pulse * 0.2) * (s * 0.2) * frac;
-        var px = tx + wave + drift * frac * frac;
-        ctx.lineTo(px, py);
-      }
+      var cpX = tx + swayOffset + drift * 0.5;
+      var cpY = startY + len * 0.5;
+      var endX = tx + swayOffset + drift + (Math.random() - 0.5) * s * 0.1;
+      var endY = startY + len;
+      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
       ctx.stroke();
     }
 
