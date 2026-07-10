@@ -28,20 +28,34 @@
     { r: 100, g: 200, b: 255 }
   ];
 
+  function makeTentacles(s) {
+    var count = 7 + Math.floor(s / 7);
+    var arr = [];
+    for (var t = 0; t < count; t++) {
+      arr.push({
+        len: s * (0.8 + Math.random() * 1),
+        lw: 1.5 + Math.random() * 1,
+        endOff: (Math.random() - 0.5) * s * 0.1
+      });
+    }
+    return arr;
+  }
+
   function createJelly() {
     var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    var s = 15 + Math.random() * 45;
     return {
       x: Math.random() * w,
       y: h + 50 + Math.random() * 100,
-      size: 15 + Math.random() * 45,
+      size: s,
       speed: 0.15 + Math.random() * 0.3,
       sway: Math.random() * Math.PI * 2,
       swaySpeed: 0.003 + Math.random() * 0.005,
       swayAmount: 15 + Math.random() * 30,
-      phase: Math.random() * Math.PI * 2,
       color: colors[Math.floor(Math.random() * colors.length)],
       opacity: (isLight ? 0.18 : 0.28) + Math.random() * 0.08,
-      pulse: Math.random() * Math.PI * 2
+      pulse: Math.random() * Math.PI * 2,
+      tentacles: makeTentacles(s)
     };
   }
 
@@ -91,25 +105,25 @@
     ctx.stroke();
 
     // tentacles
-    var tentCount = 7 + Math.floor(s / 7);
+    var tentData = j.tentacles;
     var swayPhase = Math.sin(j.sway);
-    for (var t = 0; t < tentCount; t++) {
-      var tfrac = t / (tentCount - 1 || 1);
+    for (var t = 0; t < tentData.length; t++) {
+      var td = tentData[t];
+      var tfrac = t / (tentData.length - 1 || 1);
       var tx = (tfrac - 0.5) * s * 2 * pulse;
       var startY = -s * 0.1 - Math.abs(tfrac - 0.5) * s * 0.15;
-      var len = s * (0.8 + Math.random() * 1);
       var drift = (tfrac - 0.5) * s * 0.3;
       var swayOffset = swayPhase * s * 0.2 * (tfrac - 0.5) * 0.5;
       ctx.beginPath();
       ctx.moveTo(tx, startY);
       ctx.strokeStyle = 'rgba(' + j.color.r + ',' + j.color.g + ',' + j.color.b + ',0.55)';
-      ctx.lineWidth = 1.5 + Math.random() * 1;
+      ctx.lineWidth = td.lw;
       ctx.lineCap = 'round';
 
       var cpX = tx + swayOffset + drift * 0.5;
-      var cpY = startY + len * 0.5;
-      var endX = tx + swayOffset + drift + (Math.random() - 0.5) * s * 0.1;
-      var endY = startY + len;
+      var cpY = startY + td.len * 0.5;
+      var endX = tx + swayOffset + drift + td.endOff;
+      var endY = startY + td.len;
       ctx.quadraticCurveTo(cpX, cpY, endX, endY);
       ctx.stroke();
     }
@@ -127,7 +141,6 @@
       var j = jellies[i];
       j.y -= j.speed;
       j.sway += j.swaySpeed;
-      j.phase += 0.004;
       j.pulse += 0.003;
       drawJelly(j);
       if (j.y < -j.size * 3) {
