@@ -490,47 +490,55 @@
       );
     }
 
-    // pipeline: Gemini > Puter IA > KB > página > Supabase > Wikipedia > DDG > fallback
-    askGemini(question, function(ai) {
-      if (ai && ai.text) {
-        responder(ai.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
-        return;
-      }
-      askPuter(question, function(ai2) {
-        if (ai2 && ai2.text) {
-          responder(ai2.text, 'src-kb', 'IA', 'Puter.js · GPT-5.4 Nano');
+    // pipeline: n8n > Gemini > Puter > KB > página > Supabase > Wikipedia > DDG > fallback
+    function fallbackChain() {
+      if (kbMatch()) return;
+      if (pageMatch()) return;
+      supabaseMatch(function(ok) {
+        if (ok) return;
+        wikipediaMatch(function(ok2) {
+          if (ok2) return;
+          ddgMatch(function(ok3) {
+            if (!ok3) fallback();
+          });
+        });
+      });
+    }
+    if (N8N_WEBHOOK_URL) {
+      askN8n(question, function(answer) {
+        if (answer) {
+          responder(answer, 'src-n8n', 'n8n IA', '');
           return;
         }
-        if (N8N_WEBHOOK_URL) {
-          askN8n(question, function(answer) {
-            if (answer) { responder(answer, 'src-n8n', 'n8n IA', ''); return; }
-            if (kbMatch()) return;
-            if (pageMatch()) return;
-            supabaseMatch(function(ok) {
-              if (ok) return;
-              wikipediaMatch(function(ok2) {
-                if (ok2) return;
-                ddgMatch(function(ok3) {
-                  if (!ok3) fallback();
-                });
-              });
-            });
+        askGemini(question, function(ai) {
+          if (ai && ai.text) {
+            responder(ai.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
+            return;
+          }
+          askPuter(question, function(ai2) {
+            if (ai2 && ai2.text) {
+              responder(ai2.text, 'src-kb', 'IA', 'Puter.js · GPT-5.4 Nano');
+              return;
+            }
+            fallbackChain();
           });
-        } else {
-          if (kbMatch()) return;
-          if (pageMatch()) return;
-          supabaseMatch(function(ok) {
-            if (ok) return;
-            wikipediaMatch(function(ok2) {
-              if (ok2) return;
-              ddgMatch(function(ok3) {
-                if (!ok3) fallback();
-              });
-            });
-          });
-        }
+        });
       });
-    });
+    } else {
+      askGemini(question, function(ai) {
+        if (ai && ai.text) {
+          responder(ai.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
+          return;
+        }
+        askPuter(question, function(ai2) {
+          if (ai2 && ai2.text) {
+            responder(ai2.text, 'src-kb', 'IA', 'Puter.js · GPT-5.4 Nano');
+            return;
+          }
+          fallbackChain();
+        });
+      });
+    }
   }
 
   function addMessage(text, role) {
