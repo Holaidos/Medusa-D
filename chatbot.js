@@ -3,9 +3,8 @@
 
   var SUPABASE_URL = 'https://ohwwehbadhtysmwjvfoy.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9od3dlaGJhZGh0eXNtd2p2Zm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTg0MjMsImV4cCI6MjA5OTA5NDQyM30.DtlcpFcDbONfjjTiIcL4PlX0sscv7ccRkwYoX_WMCp0';
-  var N8N_WEBHOOK_URL = ''; // configurar después con la URL de n8n
+  var N8N_WEBHOOK_URL = '';
 
-  // crear HTML del chatbot
   var html =
     '<div id="chat-toggle" aria-label="Abrir chat">💬</div>' +
     '<div id="chat-window">' +
@@ -14,7 +13,7 @@
         '<button id="chat-close" aria-label="Cerrar chat">✕</button>' +
       '</div>' +
       '<div id="chat-messages">' +
-        '<div class="chat-msg bot">Hola! Pregúntame cualquier cosa sobre medusas 🪼</div>' +
+        '<div class="chat-msg bot">¡Hola! Pregúntame cualquier cosa sobre medusas 🪼<br><span style="font-size:12px;color:var(--text-muted)">Busco en la página, Supabase, Wikipedia y la web</span></div>' +
       '</div>' +
       '<div id="chat-input-area">' +
         '<input id="chat-input" type="text" placeholder="Escribe tu pregunta..." autocomplete="off">' +
@@ -34,7 +33,6 @@
   var input = document.getElementById('chat-input');
   var sendBtn = document.getElementById('chat-send');
 
-  // estilos
   var style = document.createElement('style');
   style.textContent =
     '#chat-container { position:fixed; bottom:24px; right:24px; z-index:9999; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; }' +
@@ -47,11 +45,16 @@
     '#chat-messages { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth; }' +
     '#chat-messages::-webkit-scrollbar { width:4px; }' +
     '#chat-messages::-webkit-scrollbar-thumb { background:var(--primary,#00b4ff); border-radius:99px; }' +
-    '.chat-msg { max-width:85%; padding:12px 16px; border-radius:16px; font-size:14px; line-height:1.5; word-wrap:break-word; animation:msgIn 0.25s ease; }' +
+    '.chat-msg { max-width:90%; padding:12px 16px; border-radius:16px; font-size:14px; line-height:1.5; word-wrap:break-word; animation:msgIn 0.25s ease; }' +
     '@keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }' +
     '.chat-msg.bot { align-self:flex-start; background:rgba(0,180,255,0.08); color:var(--text,#dbe5df); border-bottom-left-radius:4px; border:1px solid rgba(0,180,255,0.1); }' +
     '.chat-msg.user { align-self:flex-end; background:linear-gradient(135deg,rgba(0,180,255,0.2),rgba(199,125,255,0.2)); color:var(--text,#dbe5df); border-bottom-right-radius:4px; }' +
-    '.chat-msg .label { font-size:10px; font-weight:700; text-transform:uppercase; color:var(--primary,#00b4ff); margin-bottom:4px; letter-spacing:0.05em; }' +
+    '.chat-msg .src-badge { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; padding:1px 6px; border-radius:4px; margin-bottom:6px; letter-spacing:0.04em; }' +
+    '.chat-msg .src-pagina { background:rgba(0,180,255,0.15); color:var(--primary,#00b4ff); }' +
+    '.chat-msg .src-supabase { background:rgba(199,125,255,0.15); color: #c77dff; }' +
+    '.chat-msg .src-wikipedia { background:rgba(0,255,209,0.15); color: #00ffd1; }' +
+    '.chat-msg .src-web { background:rgba(255,107,157,0.15); color: #ff6b9d; }' +
+    '.chat-msg .src-n8n { background:rgba(255,200,0,0.15); color: #ffc800; }' +
     '.chat-msg.bot a { color:var(--primary,#00b4ff); text-decoration:none; }' +
     '.chat-msg.bot a:hover { text-decoration:underline; }' +
     '.chat-msg .source { font-size:11px; color:var(--text-muted,#94a3b8); margin-top:6px; border-top:1px solid rgba(0,180,255,0.1); padding-top:6px; }' +
@@ -75,8 +78,6 @@
 
   document.head.appendChild(style);
 
-  var typingMsg = null;
-
   function showTyping() {
     var div = document.createElement('div');
     div.className = 'chat-msg bot chat-typing';
@@ -84,7 +85,6 @@
     div.id = 'chat-typing-indicator';
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
-    return div;
   }
 
   function hideTyping() {
@@ -92,20 +92,20 @@
     if (el) el.remove();
   }
 
-  function addMessage(text, role, data) {
+  function addMessage(text, role) {
     var div = document.createElement('div');
     div.className = 'chat-msg ' + role;
-      if (role === 'bot') {
-        div.innerHTML = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      } else {
-        div.textContent = text;
-      }
+    if (role === 'bot') {
+      div.innerHTML = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    } else {
+      div.textContent = text;
+    }
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
   }
 
-  function escapeHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function badge(cssClass, label) {
+    return '<span class="src-badge ' + cssClass + '">' + label + '</span>';
   }
 
   function normalize(s) {
@@ -114,97 +114,132 @@
 
   function extractKeywords(s) {
     var words = normalize(s).split(/\s+/);
-    var stop = ['que','como','cual','donde','cuando','porque','para','con','sin','las','los','una','uno','del','el','la','en','es','se','su','un','de','y','a','e','i','o','u','le','les','por','al','mas','pero','esto','eso','aquello','muy','tiene','tienen','son','hay','fue','era','ser','hace','entre','todo','cada','asi','tambien','solo','sino'];
+    var stop = ['que','como','cual','donde','cuando','porque','para','con','sin','las','los','una','uno','del','el','la','en','es','se','su','un','de','y','a','e','i','o','u','le','les','por','al','mas','pero','esto','eso','aquello','muy','tiene','tienen','son','hay','fue','era','ser','hace','entre','todo','cada','asi','tambien','solo','sino','este','esta','esta'];
     return words.filter(function(w) { return w.length > 2 && stop.indexOf(w) === -1; });
   }
 
   function scoreMatch(keywords, text) {
     if (!text) return 0;
-    var t = normalize(text);
+    var t = normalize(typeof text === 'string' ? text : JSON.stringify(text));
     var score = 0;
     for (var i = 0; i < keywords.length; i++) {
-      if (t.indexOf(keywords[i]) !== -1) {
-        score += keywords[i].length;
+      var kw = keywords[i];
+      var idx = t.indexOf(kw);
+      while (idx !== -1) {
+        score += kw.length + (kw.length > 5 ? 5 : 0);
+        idx = t.indexOf(kw, idx + 1);
       }
     }
     return score;
   }
 
-  // preguntas rápidas por keywords fijas
-  var quickAnswers = [
-    { keywords: ['inmortal','turritopsis','dohrnii','eterna'], text: 'La **Turritopsis dohrnii** es conocida como la medusa inmortal. Mide solo 4.5 mm y puede revertir su ciclo de vida mediante transdiferenciación, volviendo al estado de pólipo cuando está estresada o envejece. ¡En teoría puede vivir para siempre!<div class="source">Fuente: biología marina, estudio de transdiferenciación</div>' },
-    { keywords: ['venenosa','peligrosa','mortal','picadura','muerte'], text: 'La medusa más venenosa es la **Chironex fleckeri** (avispa de mar). Su veneno puede causar paro cardíaco en 3-20 minutos. Sin embargo, no todas las medusas son peligrosas — muchas tienen veneno demasiado débil para afectar humanos.<div class="source">Fuente: registro de especies marinas venenosas</div>' }
-  ];
+  // ============ FUENTES DE BÚSQUEDA ============
 
-  function checkQuickAnswer(kw) {
-    for (var i = 0; i < quickAnswers.length; i++) {
-      var qa = quickAnswers[i];
-      for (var j = 0; j < qa.keywords.length; j++) {
-        for (var k = 0; k < kw.length; k++) {
-          if (kw[k].indexOf(qa.keywords[j]) !== -1 || qa.keywords[j].indexOf(kw[k]) !== -1) {
-            return qa.text;
-          }
-        }
+  // 1) Buscar en el texto visible de la página actual
+  function searchPage(kw) {
+    var main = document.querySelector('main') || document.body;
+    var text = main.textContent || '';
+    var paragraphs = text.split(/\n+/);
+    var best = { score: 0, text: '' };
+    paragraphs.forEach(function(p) {
+      var trimmed = p.trim();
+      if (trimmed.length < 30) return;
+      var s = scoreMatch(kw, trimmed);
+      if (s > best.score) {
+        best.score = s;
+        best.text = trimmed.substring(0, 400);
       }
-    }
-    return null;
+    });
+    return best.score > 2 ? best : null;
   }
 
+  // 2) Buscar en Supabase
   function searchSupabase(kw, callback) {
-    var promises = [];
     var tables = [
-      { name: 'species', url: '/rest/v1/species?select=nombre_comun,nombre_cientifico,descripcion,toxicidad,datos_curiosos&limit=10' },
-      { name: 'articles', url: '/rest/v1/articles?select=titulo,contenido,topico&limit=10' },
-      { name: 'content_cards', url: '/rest/v1/content_cards?select=title,content,subcategory&limit=20' }
+      { name: 'species', fields: 'nombre_comun,nombre_cientifico,descripcion,toxicidad,datos_curiosos', label: 'Especie' },
+      { name: 'articles', fields: 'titulo,contenido,topico', label: 'Artículo' },
+      { name: 'content_cards', fields: 'title,content,subcategory', label: 'Sección' }
     ];
-
-    tables.forEach(function(t) {
-      promises.push(
-        fetch(SUPABASE_URL + t.url, {
-          headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-        }).then(function(r) { return r.json(); }).then(function(data) {
-          var best = { score: 0, text: '', source: '' };
-          (data || []).forEach(function(row) {
-            var searchText = JSON.stringify(row);
-            var s = scoreMatch(kw, searchText);
-            if (s > best.score) {
-              best.score = s;
-              if (t.name === 'species') {
-                best.text = 'La **' + row.nombre_comun + '** (' + row.nombre_cientifico + '): ' + (row.descripcion || '') + (row.datos_curiosos ? ' ' + row.datos_curiosos : '');
-                best.source = 'Especie: ' + row.nombre_comun;
-              } else if (t.name === 'articles') {
-                best.text = (row.contenido || '').substring(0, 300) + (row.contenido && row.contenido.length > 300 ? '...' : '');
-                best.source = 'Artículo: ' + row.titulo;
-              } else if (t.name === 'content_cards') {
-                best.text = '**' + row.title + '**: ' + (row.content || '');
-                best.source = 'Sección: ' + (row.subcategory || 'general');
-              }
+    var promises = tables.map(function(t) {
+      var url = SUPABASE_URL + '/rest/v1/' + t.name + '?select=' + t.fields + '&limit=15';
+      return fetch(url, {
+        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var best = { score: 0, text: '', source: '' };
+        (data || []).forEach(function(row) {
+          var s = scoreMatch(kw, JSON.stringify(row));
+          if (s > best.score) {
+            best.score = s;
+            if (t.name === 'species') {
+              best.text = '**' + row.nombre_comun + '** (' + row.nombre_cientifico + '): ' + (row.descripcion || '') + (row.datos_curiosos ? ' ' + row.datos_curiosos : '');
+            } else if (t.name === 'articles') {
+              best.text = (row.contenido || '').substring(0, 350) + (row.contenido && row.contenido.length > 350 ? '...' : '');
+            } else {
+              best.text = '**' + row.title + '**: ' + (row.content || '');
             }
-          });
-          return best;
-        }).catch(function() { return { score: 0, text: '', source: '' }; })
-      );
+            best.source = t.label + ': ' + (row.nombre_comun || row.titulo || row.title || '');
+          }
+        });
+        return best;
+      })
+      .catch(function() { return { score: 0, text: '', source: '' }; });
     });
 
     Promise.all(promises).then(function(results) {
-      var sorted = results.filter(function(r) { return r.score > 0; }).sort(function(a, b) { return b.score - a.score; });
-      if (sorted.length > 0) {
-        var answer = sorted[0].text;
-        if (sorted[0].source) {
-          answer += '<div class="source">' + escapeHtml(sorted[0].source) + '</div>';
-        }
-        callback(answer);
-      } else {
-        callback(null);
-      }
+      var sorted = results.filter(function(r) { return r.score > 2; }).sort(function(a, b) { return b.score - a.score; });
+      callback(sorted.length > 0 ? sorted[0] : null);
     });
   }
 
+  // 3) Wikipedia API (gratis, sin auth, CORS friendly)
+  function searchWikipedia(kw, callback) {
+    var query = encodeURIComponent(kw.slice(0, 4).join(' ') + ' medusa jellyfish');
+    var url = 'https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + query + '&srlimit=3&format=json&origin=*';
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var pages = (data.query && data.query.search) || [];
+        if (pages.length === 0) { callback(null); return; }
+        var title = encodeURIComponent(pages[0].title);
+        var extractUrl = 'https://es.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&exlimit=1&titles=' + title + '&format=json&origin=*';
+        return fetch(extractUrl).then(function(r) { return r.json(); });
+      })
+      .then(function(data) {
+        if (!data) { callback(null); return; }
+        var pages = data.query && data.query.pages;
+        if (!pages) { callback(null); return; }
+        var page = Object.values(pages)[0];
+        if (!page || !page.extract) { callback(null); return; }
+        callback({
+          text: page.extract.substring(0, 500) + (page.extract.length > 500 ? '...' : ''),
+          source: 'Wikipedia: ' + page.title,
+          url: 'https://es.wikipedia.org/wiki/' + encodeURIComponent(page.title)
+        });
+      })
+      .catch(function() { callback(null); });
+  }
+
+  // 4) DuckDuckGo Instant Answer (gratis, sin auth)
+  function searchDDG(kw, callback) {
+    var q = encodeURIComponent(kw.join(' ') + ' medusas');
+    fetch('https://api.duckduckgo.com/?q=' + q + '&format=json&no_html=1&skip_disambig=1&origin=*')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var text = data.AbstractText || data.Answer || '';
+        if (text) {
+          callback({ text: text.substring(0, 500), source: 'DuckDuckGo' });
+        } else {
+          callback(null);
+        }
+      })
+      .catch(function() { callback(null); });
+  }
+
+  // 5) n8n (si configurado)
   function askN8n(question, callback) {
-    if (!N8N_WEBHOOK_URL) {
-      callback(null);
-      return;
-    }
+    if (!N8N_WEBHOOK_URL) { callback(null); return; }
     fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -214,6 +249,17 @@
     .then(function(data) { callback(data.answer || null); })
     .catch(function() { callback(null); });
   }
+
+  // ============ MANEJADOR PRINCIPAL ============
+
+  var preguntasEjemplo = [
+    '¿Qué comen las medusas?',
+    '¿Cuál es la medusa más venenosa?',
+    '¿Cómo se reproducen?',
+    '¿Tienen cerebro?',
+    '¿Qué es la medusa inmortal?',
+    '¿Cómo tratar una picadura?'
+  ];
 
   function handleQuestion(question) {
     question = question.trim();
@@ -225,39 +271,87 @@
 
     var kw = extractKeywords(question);
 
-    function respond(answer) {
-      hideTyping();
-      if (answer) {
-        addMessage(answer, 'bot');
+    // 1) Intentar n8n primero
+    function tryN8n() {
+      if (N8N_WEBHOOK_URL) {
+        askN8n(question, function(answer) {
+          if (answer) {
+            hideTyping();
+            addMessage(badge('src-n8n', 'n8n IA') + answer, 'bot');
+          } else {
+            tryPage();
+          }
+        });
       } else {
-        addMessage('No encontré información específica sobre eso en la base de datos. ' +
-          'Prueba preguntar sobre especies como la medusa luna, la avispa de mar, o la medusa inmortal. ' +
-          'También sé sobre anatomía, picaduras, bioluminiscencia y más 🪼' +
-          '<div class="source">Consejo: intenta con preguntas más cortas o palabras clave</div>', 'bot');
+        tryPage();
       }
     }
 
-    // 1. intentar respuesta rápida por keywords
-    var quick = checkQuickAnswer(kw);
-    if (quick) {
-      hideTyping();
-      addMessage(quick, 'bot');
-      return;
+    // 2) Buscar en la página actual
+    function tryPage() {
+      var pageResult = searchPage(kw);
+      if (pageResult && pageResult.score > 5) {
+        hideTyping();
+        addMessage(badge('src-pagina', 'Esta página') + pageResult.text.substring(0, 350) + '<div class="source">Encontrado en esta página</div>', 'bot');
+        return;
+      }
+      trySupabase();
     }
 
-    // 2. intentar n8n (si configurado)
-    if (N8N_WEBHOOK_URL) {
-      askN8n(question, function(answer) {
-        if (answer) { hideTyping(); addMessage(answer, 'bot'); }
-        else { searchSupabase(kw, respond); }
+    // 3) Buscar en Supabase
+    function trySupabase() {
+      searchSupabase(kw, function(result) {
+        if (result && result.score > 3) {
+          hideTyping();
+          addMessage(badge('src-supabase', 'Base de datos') + result.text + '<div class="source">' + result.source + '</div>', 'bot');
+          return;
+        }
+        tryWikipedia();
       });
-    } else {
-      // 3. buscar en Supabase
-      searchSupabase(kw, respond);
     }
+
+    // 4) Buscar en Wikipedia
+    function tryWikipedia() {
+      searchWikipedia(kw, function(result) {
+        if (result) {
+          hideTyping();
+          var link = '<br><a href="' + result.url + '" target="_blank" rel="noopener">📖 Leer más en Wikipedia →</a>';
+          addMessage(badge('src-wikipedia', 'Wikipedia') + result.text + link + '<div class="source">' + result.source + '</div>', 'bot');
+          return;
+        }
+        tryWeb();
+      });
+    }
+
+    // 5) Buscar en DuckDuckGo / web
+    function tryWeb() {
+      searchDDG(kw, function(result) {
+        if (result) {
+          hideTyping();
+          addMessage(badge('src-web', 'Web') + result.text + '<div class="source">' + result.source + '</div>', 'bot');
+          return;
+        }
+        fallback();
+      });
+    }
+
+    // 6) Fallback con sugerencias
+    function fallback() {
+      hideTyping();
+      var sugerencias = preguntasEjemplo.map(function(p) {
+        return '<div style="cursor:pointer;color:var(--primary);padding:4px 0;" onclick="(function(q){var i=document.getElementById(\'chat-input\');i.value=q;document.getElementById(\'chat-send\').click()})(\'' + p.replace(/'/g, "\\'") + '\')">→ ' + p + '</div>';
+      }).join('');
+      addMessage(
+        'No encontré información específica. Prueba con una de estas preguntas:' +
+        '<div style="margin-top:8px">' + sugerencias + '</div>' +
+        '<div class="source">Puedes preguntar en español o inglés</div>',
+        'bot'
+      );
+    }
+
+    tryN8n();
   }
 
-  // eventos
   toggle.addEventListener('click', function() {
     windowEl.classList.toggle('open');
     if (windowEl.classList.contains('open')) {
