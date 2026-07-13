@@ -67,10 +67,10 @@
     '.chat-typing span:nth-child(3) { animation-delay:0.4s; }' +
     '@keyframes typing { 0%,60%,100% { opacity:0.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-6px); } }' +
     '#chat-window.open { display:flex; }' +
-    'body.light #chat-window { background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); }' +
-    'body.light .chat-msg.bot { background:rgba(0,180,255,0.06); }' +
-    'body.light .chat-msg.user { background:rgba(0,180,255,0.1); }' +
-    'body.light #chat-input { background:rgba(0,0,0,0.03); }' +
+    'html[data-theme="light"] #chat-window { background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); }' +
+    'html[data-theme="light"] .chat-msg.bot { background:rgba(0,180,255,0.06); }' +
+    'html[data-theme="light"] .chat-msg.user { background:rgba(0,180,255,0.1); }' +
+    'html[data-theme="light"] #chat-input { background:rgba(0,0,0,0.03); }' +
     '@media (max-width:480px) { #chat-window { right:12px; bottom:80px; width:calc(100vw - 24px); height:calc(100vh - 100px); border-radius:16px; } #chat-container { right:12px; bottom:12px; } }';
 
   document.head.appendChild(style);
@@ -95,11 +95,11 @@
   function addMessage(text, role, data) {
     var div = document.createElement('div');
     div.className = 'chat-msg ' + role;
-    if (role === 'bot') {
-      div.innerHTML = text;
-    } else {
-      div.textContent = text;
-    }
+      if (role === 'bot') {
+        div.innerHTML = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      } else {
+        div.textContent = text;
+      }
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
   }
