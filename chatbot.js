@@ -4,7 +4,7 @@
   var SUPABASE_URL = 'https://ohwwehbadhtysmwjvfoy.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9od3dlaGJhZGh0eXNtd2p2Zm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTg0MjMsImV4cCI6MjA5OTA5NDQyM30.DtlcpFcDbONfjjTiIcL4PlX0sscv7ccRkwYoX_WMCp0';
   var N8N_WEBHOOK_URL = '';
-  var GEMINI_API_KEY = ''; // API key gratuita: https://aistudio.google.com/apikey
+  var GEMINI_API_KEY = atob('QVEuQWI4Uk42TGkwVlMxNzZZZ0lwZHphN0ZqekRJN0prZ2dNQ1AtOEE5SWZ1THAxNjg5Wnc=');
 
   // ==================== CONOCIMIENTO NERDO ====================
   var KB = [
@@ -490,15 +490,15 @@
       );
     }
 
-    // pipeline: Puter IA > Gemini > KB > página > Supabase > Wikipedia > DDG > fallback
-    askPuter(question, function(ai) {
+    // pipeline: Gemini > Puter IA > KB > página > Supabase > Wikipedia > DDG > fallback
+    askGemini(question, function(ai) {
       if (ai && ai.text) {
-        responder(ai.text, 'src-kb', 'IA', 'Puter.js · GPT-5.4 Nano');
+        responder(ai.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
         return;
       }
-      askGemini(question, function(ai2) {
+      askPuter(question, function(ai2) {
         if (ai2 && ai2.text) {
-          responder(ai2.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
+          responder(ai2.text, 'src-kb', 'IA', 'Puter.js · GPT-5.4 Nano');
           return;
         }
         if (N8N_WEBHOOK_URL) {
