@@ -170,11 +170,11 @@
     '<div id="chat-toggle" aria-label="Abrir chat">💬</div>' +
     '<div id="chat-window">' +
       '<div id="chat-header">' +
-        '<span>🪼 Chat Medusa <span style="font-size:10px;opacity:0.5">v3.0 IA' + (GEMINI_API_KEY ? ' 🟢' : ' ⚠️') + '</span></span>' +
+        '<span>🪼 Chat Medusa <span style="font-size:10px;opacity:0.5">v3.0 IA 🟢</span></span>' +
         '<button id="chat-close" aria-label="Cerrar chat">✕</button>' +
       '</div>' +
       '<div id="chat-messages">' +
-        '<div class="chat-msg bot">¡Hola! Soy el chat más nerd de medusas 🪼' + (GEMINI_API_KEY ? '' : '<br><span style="font-size:11px;color:var(--text-muted)">⚠️ Sin conexión a IA — usando modo offline</span>') + '<br><span style="font-size:11px;color:var(--text-muted)">Pregúntame sobre biología, genética, bioquímica, evolución, ecología... lo que sea.</span></div>' +
+        '<div class="chat-msg bot">¡Hola! Soy el chat de medusas con IA 🪼<br><span style="font-size:11px;color:var(--text-muted)">Pregúntame sobre biología, genética, bioquímica, evolución, ecología... lo que sea.</span></div>' +
       '</div>' +
       '<div id="chat-input-area">' +
         '<input id="chat-input" type="text" placeholder="Escribe tu pregunta..." autocomplete="off">' +
@@ -371,6 +371,17 @@
       .catch(function() { cb(null); });
   }
 
+  function askPuter(question, cb) {
+    if (typeof puter === 'undefined' || !puter.ai) { cb(null); return; }
+    var systemPrompt = 'Eres un experto enciclopédico en medusas (cnidarios), biología marina, bioquímica y ciencias afines. Respondes SIEMPRE en español, con tono conversacional pero preciso. Tus respuestas deben ser detalladas, informativas y bien estructuradas, usando negritas para conceptos clave. Si no sabes algo, dilo honestamente. Si la pregunta no es sobre medusas o biología afín, responde de todas formas de manera útil y amigable. No digas que eres una IA o que no tienes acceso a información actualizada — simplemente responde como un experto.';
+    puter.ai.chat(systemPrompt + '\n\nPregunta: ' + question, { model: 'openai/gpt-5.4-nano' })
+      .then(function(response) {
+        var text = response && response.message && response.message.content ? response.message.content : (response && response.text ? response.text : null);
+        cb(text ? { text: text } : null);
+      })
+      .catch(function() { cb(null); });
+  }
+
   function askGemini(question, cb) {
     if (!GEMINI_API_KEY) { cb(null); return; }
     var systemPrompt = 'Eres un experto enciclopédico en medusas (cnidarios), biología marina, bioquímica y ciencias afines. Respondes SIEMPRE en español, con tono conversacional pero preciso. Tus respuestas deben ser detalladas, informativas y bien estructuradas, usando negritas para conceptos clave. Si no sabes algo, dilo honestamente. Si la pregunta no es sobre medusas o biología afín, responde de todas formas de manera útil y amigable. No digas que eres una IA o que no tienes acceso a información actualizada — simplemente responde como un experto.';
@@ -479,15 +490,33 @@
       );
     }
 
-    // pipeline: Gemini IA > n8n > KB > página > Supabase > Wikipedia > DDG > fallback
-    askGemini(question, function(ai) {
+    // pipeline: Puter IA > Gemini > KB > página > Supabase > Wikipedia > DDG > fallback
+    askPuter(question, function(ai) {
       if (ai && ai.text) {
-        responder(ai.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
+        responder(ai.text, 'src-kb', 'IA', 'Puter.js · GPT-5.4 Nano');
         return;
       }
-      if (N8N_WEBHOOK_URL) {
-        askN8n(question, function(answer) {
-          if (answer) { responder(answer, 'src-n8n', 'n8n IA', ''); return; }
+      askGemini(question, function(ai2) {
+        if (ai2 && ai2.text) {
+          responder(ai2.text, 'src-kb', 'IA', 'Gemini 2.0 Flash');
+          return;
+        }
+        if (N8N_WEBHOOK_URL) {
+          askN8n(question, function(answer) {
+            if (answer) { responder(answer, 'src-n8n', 'n8n IA', ''); return; }
+            if (kbMatch()) return;
+            if (pageMatch()) return;
+            supabaseMatch(function(ok) {
+              if (ok) return;
+              wikipediaMatch(function(ok2) {
+                if (ok2) return;
+                ddgMatch(function(ok3) {
+                  if (!ok3) fallback();
+                });
+              });
+            });
+          });
+        } else {
           if (kbMatch()) return;
           if (pageMatch()) return;
           supabaseMatch(function(ok) {
@@ -499,20 +528,8 @@
               });
             });
           });
-        });
-      } else {
-        if (kbMatch()) return;
-        if (pageMatch()) return;
-        supabaseMatch(function(ok) {
-          if (ok) return;
-          wikipediaMatch(function(ok2) {
-            if (ok2) return;
-            ddgMatch(function(ok3) {
-              if (!ok3) fallback();
-            });
-          });
-        });
-      }
+        }
+      });
     });
   }
 
