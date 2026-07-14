@@ -3,7 +3,7 @@
 
   var SUPABASE_URL = 'https://ohwwehbadhtysmwjvfoy.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9od3dlaGJhZGh0eXNtd2p2Zm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTg0MjMsImV4cCI6MjA5OTA5NDQyM30.DtlcpFcDbONfjjTiIcL4PlX0sscv7ccRkwYoX_WMCp0';
-  var N8N_WEBHOOK_URL = 'https://n8n.ingeniard.com/webhook-test/401ed3c7-910d-4dc7-8887-416cff2157fb';
+  var N8N_WEBHOOK_URL = 'https://n8n.ingeniard.com/webhook/401ed3c7-910d-4dc7-8887-416cff2157fb';
   var GEMINI_API_KEY = atob('QVEuQWI4Uk42TGkwVlMxNzZZZ0lwZHphN0ZqekRJN0prZ2dNQ1AtOEE5SWZ1THAxNjg5Wnc=');
 
   // ==================== CONOCIMIENTO NERDO ====================
